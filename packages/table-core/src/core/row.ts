@@ -114,9 +114,11 @@ export function getRowProto<TData extends RowData>(table: Table<TData>) {
     proto.subRows = [] as const
 
     proto.getValue = function (columnId: string) {
+      /*
       if (this._valuesCache.hasOwnProperty(columnId)) {
         return this._valuesCache[columnId]
       }
+      */
 
       const column = table.getColumn(columnId)
 
@@ -124,12 +126,18 @@ export function getRowProto<TData extends RowData>(table: Table<TData>) {
         return undefined
       }
 
+      return column.accessorFn(
+        this.original as TData,
+        this.index
+      ) as any
+      /*
       this._valuesCache[columnId] = column.accessorFn(
         this.original as TData,
         this.index
       )
 
       return this._valuesCache[columnId] as any
+      */
     }
 
     proto.getUniqueValues = function (columnId: string) {
@@ -149,8 +157,10 @@ export function getRowProto<TData extends RowData>(table: Table<TData>) {
       }
 
       if (!column.columnDef.getUniqueValues) {
-        this._uniqueValuesCache[columnId] = [this.getValue(columnId)]
-        return this._uniqueValuesCache[columnId]
+        // Avoid unnecessary caching for unique values
+        return [this.getValue(columnId)];
+        // this._uniqueValuesCache[columnId] = [this.getValue(columnId)]
+        // return this._uniqueValuesCache[columnId]
       }
 
       this._uniqueValuesCache[columnId] = column.columnDef.getUniqueValues(
@@ -199,9 +209,12 @@ export function getRowProto<TData extends RowData>(table: Table<TData>) {
 
     proto._getAllCellsByColumnId = memo(
       function (this: Row<TData>) {
-        return [this.getAllCells()]
+        // return [this.getAllCells()]
+        return []
       },
-      allCells => {
+      () => {
+        throw new Error('Row._getAllCellsByColumnId not implemented because it is a memory leak')
+        /*
         return allCells.reduce(
           (acc, cell) => {
             acc[cell.column.id] = cell
@@ -209,6 +222,7 @@ export function getRowProto<TData extends RowData>(table: Table<TData>) {
           },
           {} as Record<string, Cell<TData, unknown>>
         )
+        */
       },
       getMemoOptions(table.options, 'debugRows', 'getAllCellsByColumnId')
     )
@@ -236,7 +250,7 @@ export const createRow = <TData extends RowData>(
     original,
     depth,
     parentId,
-    _valuesCache: {},
+    // _valuesCache: {},
   })
 
   if (subRows) {

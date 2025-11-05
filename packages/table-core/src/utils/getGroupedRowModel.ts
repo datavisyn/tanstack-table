@@ -11,11 +11,15 @@ export function getGroupedRowModel<TData extends RowData>(): (
       () => [table.getState().grouping, table.getPreGroupedRowModel()],
       (grouping, rowModel) => {
         if (!rowModel.rows.length || !grouping.length) {
+          // TODO: Does this have any consequences? Would avoid iterating the rows again
+          return rowModel;
+          /*
           rowModel.rows.forEach(row => {
             row.depth = 0
             row.parentId = undefined
           })
           return rowModel
+          */
         }
 
         // Filter the grouping list down to columns that exist

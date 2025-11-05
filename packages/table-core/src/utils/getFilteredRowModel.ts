@@ -18,11 +18,15 @@ export function getFilteredRowModel<TData extends RowData>(): (
           !rowModel.rows.length ||
           (!columnFilters?.length && !globalFilter)
         ) {
+          // TODO: Does this have any consequences? Would avoid iterating the rows again
+          return rowModel;
+          /*
           for (let i = 0; i < rowModel.flatRows.length; i++) {
             rowModel.flatRows[i]!.columnFilters = {}
             rowModel.flatRows[i]!.columnFiltersMeta = {}
           }
           return rowModel
+          */
         }
 
         const resolvedColumnFilters: ResolvedColumnFilter<TData>[] = []
