@@ -98,16 +98,21 @@ export function getGroupedRowModel<TData extends RowData>(): (
                 getValue: (columnId: string) => {
                   // Don't aggregate columns that are in the grouping
                   if (existingGrouping.includes(columnId)) {
+                    /*
                     if (row._valuesCache.hasOwnProperty(columnId)) {
                       return row._valuesCache[columnId]
                     }
-
+                    */
                     if (groupedRows[0]) {
+                      return groupedRows[0].getValue(columnId) ?? undefined
+                      /*
                       row._valuesCache[columnId] =
                         groupedRows[0].getValue(columnId) ?? undefined
+                      */
                     }
 
-                    return row._valuesCache[columnId]
+                    return undefined;
+                    // return row._valuesCache[columnId]
                   }
 
                   if (row._groupingValuesCache.hasOwnProperty(columnId)) {
