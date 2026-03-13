@@ -158,7 +158,10 @@ export function getRowProto<TData extends RowData>(table: Table<TData>) {
 
       if (!column.columnDef.getUniqueValues) {
         // Avoid unnecessary caching for unique values
-        return [this.getValue(columnId)];
+        // @TODO @Michael @Moritz Is this the correct place to fix this?
+        // the .flat() is required because this.getValue() cann return an array, resulting in a nested array. But getUniqueValues is expected
+        // to always return a flat array of unique values.
+        return [this.getValue(columnId)].flat();
         // this._uniqueValuesCache[columnId] = [this.getValue(columnId)]
         // return this._uniqueValuesCache[columnId]
       }
