@@ -323,6 +323,29 @@ export function createTable<TData extends RowData>(
 
   const queued: (() => void)[] = []
   let queuedTimeout = false
+  let getColumnCache = new WeakMap<
+    ColumnDef<TData, unknown>[],
+    Record<string, Column<TData, unknown>>
+  >()
+
+  const getColumnFromCache = (columnId: string) => {
+    const columnDefs = table.options.columns
+    let columnsById = getColumnCache.get(columnDefs)
+
+    if (!columnsById) {
+      columnsById = table.getAllFlatColumns().reduce(
+        (acc, column) => {
+          acc[column.id] = column
+          return acc
+        },
+        {} as Record<string, Column<TData, unknown>>
+      )
+
+      getColumnCache.set(columnDefs, columnsById)
+    }
+
+    return columnsById[columnId]
+  }
 
   const coreInstance: CoreInstance<TData> = {
     _features,
@@ -506,7 +529,7 @@ export function createTable<TData extends RowData>(
     ),
 
     getColumn: columnId => {
-      const column = table._getAllFlatColumnsById()[columnId]
+      const column = getColumnFromCache(columnId)
 
       if (process.env.NODE_ENV !== 'production' && !column) {
         console.error(`[Table] Column with id '${columnId}' does not exist.`)
