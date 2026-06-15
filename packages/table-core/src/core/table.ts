@@ -333,14 +333,7 @@ export function createTable<TData extends RowData>(
     let columnsById = getColumnCache.get(columnDefs)
 
     if (!columnsById) {
-      columnsById = table.getAllFlatColumns().reduce(
-        (acc, column) => {
-          acc[column.id] = column
-          return acc
-        },
-        {} as Record<string, Column<TData, unknown>>
-      )
-
+      columnsById = table._getAllFlatColumnsById()
       getColumnCache.set(columnDefs, columnsById)
     }
 
