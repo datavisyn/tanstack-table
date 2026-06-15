@@ -6,6 +6,7 @@ export interface CoreRow<TData extends RowData> {
   _getAllCellsByColumnId: () => Record<string, Cell<TData, unknown>>
   _uniqueValuesCache: Record<string, unknown>
   _valuesCache: Record<string, unknown>
+  clone: () => Row<TData>
   /**
    * The depth of the row (if nested or grouped) relative to the root row array.
    * @link [API Docs](https://tanstack.com/table/v8/docs/api/core/row#depth)
@@ -92,27 +93,32 @@ export interface CoreRow<TData extends RowData> {
   subRows: Row<TData>[]
 }
 
-export const createRow = <TData extends RowData>(
-  table: Table<TData>,
-  id: string,
-  original: TData,
-  rowIndex: number,
-  depth: number,
-  subRows?: Row<TData>[],
-  parentId?: string
-): Row<TData> => {
-  let row: CoreRow<TData> = {
-    id,
-    index: rowIndex,
-    original,
-    depth,
-    parentId,
-    _valuesCache: {},
-    _uniqueValuesCache: {},
-    getValue: columnId => {
-      if (row._valuesCache.hasOwnProperty(columnId)) {
-        return row._valuesCache[columnId]
+const rowProtosByTable = new WeakMap<Table<any>, any>()
+
+/**
+ * Creates a table-specific row prototype object to hold shared row methods, including from all the
+ * features that have been registered on the table.
+ */
+export function getRowProto<TData extends RowData>(table: Table<TData>) {
+  let rowProto = rowProtosByTable.get(table)
+
+  if (!rowProto) {
+    const proto = {} as CoreRow<TData>
+
+    proto.clone = function () {
+      return Object.assign(Object.create(Object.getPrototypeOf(this)), this)
+    }
+
+    // Make the default fallback value available on the proto itself to avoid duplicating it on every row instance
+    // even if it's not used. This is safe as long as we don't mutate the value directly.
+    proto.subRows = [] as const
+
+    proto.getValue = function (columnId: string) {
+      /*
+      if (this._valuesCache.hasOwnProperty(columnId)) {
+        return this._valuesCache[columnId]
       }
+      */
 
       const column = table.getColumn(columnId)
 
@@ -120,16 +126,28 @@ export const createRow = <TData extends RowData>(
         return undefined
       }
 
-      row._valuesCache[columnId] = column.accessorFn(
-        row.original as TData,
-        rowIndex
+      return column.accessorFn(
+        this.original as TData,
+        this.index
+      ) as any
+      /*
+      this._valuesCache[columnId] = column.accessorFn(
+        this.original as TData,
+        this.index
       )
 
-      return row._valuesCache[columnId] as any
-    },
-    getUniqueValues: columnId => {
-      if (row._uniqueValuesCache.hasOwnProperty(columnId)) {
-        return row._uniqueValuesCache[columnId]
+      return this._valuesCache[columnId] as any
+      */
+    }
+
+    proto.getUniqueValues = function (columnId: string) {
+      if (!this.hasOwnProperty('_uniqueValuesCache')) {
+        // lazy-init cache on the instance
+        this._uniqueValuesCache = {}
+      }
+
+      if (this._uniqueValuesCache.hasOwnProperty(columnId)) {
+        return this._uniqueValuesCache[columnId]
       }
 
       const column = table.getColumn(columnId)
@@ -139,26 +157,38 @@ export const createRow = <TData extends RowData>(
       }
 
       if (!column.columnDef.getUniqueValues) {
-        row._uniqueValuesCache[columnId] = [row.getValue(columnId)]
-        return row._uniqueValuesCache[columnId]
+        // Avoid unnecessary caching for unique values
+        // @TODO @Michael @Moritz Is this the correct place to fix this?
+        // the .flat() is required because this.getValue() cann return an array, resulting in a nested array. But getUniqueValues is expected
+        // to always return a flat array of unique values.
+        return [this.getValue(columnId)].flat();
+        // this._uniqueValuesCache[columnId] = [this.getValue(columnId)]
+        // return this._uniqueValuesCache[columnId]
       }
 
-      row._uniqueValuesCache[columnId] = column.columnDef.getUniqueValues(
-        row.original as TData,
-        rowIndex
+      this._uniqueValuesCache[columnId] = column.columnDef.getUniqueValues(
+        this.original as TData,
+        this.index
       )
 
-      return row._uniqueValuesCache[columnId] as any
-    },
-    renderValue: columnId =>
-      row.getValue(columnId) ?? table.options.renderFallbackValue,
-    subRows: subRows ?? [],
-    getLeafRows: () => flattenBy(row.subRows, d => d.subRows),
-    getParentRow: () =>
-      row.parentId ? table.getRow(row.parentId, true) : undefined,
-    getParentRows: () => {
+      return this._uniqueValuesCache[columnId] as any
+    }
+
+    proto.renderValue = function (columnId: string) {
+      return this.getValue(columnId) ?? table.options.renderFallbackValue
+    }
+
+    proto.getLeafRows = function () {
+      return flattenBy(this.subRows, d => d.subRows)
+    }
+
+    proto.getParentRow = function () {
+      return this.parentId ? table.getRow(this.parentId, true) : undefined
+    }
+
+    proto.getParentRows = function () {
       let parentRows: Row<TData>[] = []
-      let currentRow = row
+      let currentRow = this
       while (true) {
         const parentRow = currentRow.getParentRow()
         if (!parentRow) break
@@ -166,20 +196,28 @@ export const createRow = <TData extends RowData>(
         currentRow = parentRow
       }
       return parentRows.reverse()
-    },
-    getAllCells: memo(
-      () => [table.getAllLeafColumns()],
-      leafColumns => {
+    }
+
+    proto.getAllCells = memo(
+      function (this: Row<TData>) {
+        return [this, table.getAllLeafColumns()]
+      },
+      (row, leafColumns) => {
         return leafColumns.map(column => {
-          return createCell(table, row as Row<TData>, column, column.id)
+          return createCell(table, row, column, column.id)
         })
       },
       getMemoOptions(table.options, 'debugRows', 'getAllCells')
-    ),
+    )
 
-    _getAllCellsByColumnId: memo(
-      () => [row.getAllCells()],
-      allCells => {
+    proto._getAllCellsByColumnId = memo(
+      function (this: Row<TData>) {
+        // return [this.getAllCells()]
+        return []
+      },
+      () => {
+        throw new Error('Row._getAllCellsByColumnId not implemented because it is a memory leak')
+        /*
         return allCells.reduce(
           (acc, cell) => {
             acc[cell.column.id] = cell
@@ -187,9 +225,39 @@ export const createRow = <TData extends RowData>(
           },
           {} as Record<string, Cell<TData, unknown>>
         )
+        */
       },
       getMemoOptions(table.options, 'debugRows', 'getAllCellsByColumnId')
-    ),
+    )
+
+    rowProtosByTable.set(table, proto)
+    rowProto = proto
+  }
+
+  return rowProto as CoreRow<TData>
+}
+
+export const createRow = <TData extends RowData>(
+  table: Table<TData>,
+  id: string,
+  original: TData,
+  rowIndex: number,
+  depth: number,
+  subRows?: Row<TData>[],
+  parentId?: string
+): Row<TData> => {
+  const row: CoreRow<TData> = Object.create(getRowProto(table))
+  Object.assign(row, {
+    id,
+    index: rowIndex,
+    original,
+    depth,
+    parentId,
+    // _valuesCache: {},
+  })
+
+  if (subRows) {
+    row.subRows = subRows
   }
 
   for (let i = 0; i < table._features.length; i++) {

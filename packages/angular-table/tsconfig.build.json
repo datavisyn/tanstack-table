@@ -4,7 +4,9 @@
     "allowJs": true,
     "module": "ESNext",
     "moduleDetection": "force",
-    "moduleResolution": "Bundler"
+    "moduleResolution": "Bundler",
+    // Use a more recent lib to support ES2022 features, because we now use the index.ts as entrypoint for table-core
+    "lib": ["dom", "es2022"]
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
