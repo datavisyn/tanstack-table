@@ -89,7 +89,7 @@ export interface ColumnDef_ColumnGrouping<
   /**
    * Specify a value to be used for grouping rows on this column. If this option is not specified, the value derived from `accessorKey` / `accessorFn` will be used instead.
    */
-  getGroupingValue?: (row: TData) => any
+  getGroupingValue?: (row: TData, index: number) => any
 }
 
 export interface Column_ColumnGrouping<

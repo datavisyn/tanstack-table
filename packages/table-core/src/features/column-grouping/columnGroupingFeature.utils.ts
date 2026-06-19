@@ -284,6 +284,7 @@ export function row_getGroupingValue<
   if (row._groupingValuesCache) {
     row._groupingValuesCache[columnId] = column.columnDef.getGroupingValue(
       row.original,
+      row.index,
     )
   }
 
