@@ -115,7 +115,7 @@ export function constructColumn<
   column.id = `${String(id)}`
   column.parent = parent
 
-  // Initialize instance-specific data (e.g., caches) for features that need it
+  // Initialize instance-specific data for features that need it
   const features = Object.values(table._features)
   for (let i = 0; i < features.length; i++) {
     features[i]!.initColumnInstanceData?.(column)
