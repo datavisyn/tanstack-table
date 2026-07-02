@@ -7,6 +7,7 @@ import {
   table_getAllFlatColumnsById,
   table_getAllLeafColumns,
   table_getAllLeafColumnsById,
+  table_getCachedColumn,
   table_getColumn,
   table_getDefaultColumnDef,
 } from './coreColumnsFeature.utils'
@@ -67,6 +68,9 @@ export const coreColumnsFeature: TableFeature = {
       },
       table_getColumn: {
         fn: (columnId) => table_getColumn(table, columnId),
+      },
+      table_getCachedColumn: {
+        fn: (columnId) => table_getCachedColumn(table, columnId),
       },
     })
   },

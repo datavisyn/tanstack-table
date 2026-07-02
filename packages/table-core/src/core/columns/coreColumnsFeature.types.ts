@@ -105,4 +105,8 @@ export interface Table_Columns<
    * Returns a single column by its ID.
    */
   getColumn: (columnId: string) => Column<TFeatures, TData, unknown> | undefined
+  /**
+   * Returns a single column by its ID, but cached via WeakMap.
+   */
+  getCachedColumn: (columnId: string) => Column<TFeatures, TData, unknown> | undefined
 }

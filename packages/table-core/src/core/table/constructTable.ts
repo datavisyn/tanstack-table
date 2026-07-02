@@ -63,6 +63,8 @@ export function constructTable<
     _rowModels: {},
     _rowModelFns: { aggregationFns, filterFns, sortFns },
     baseAtoms: {},
+    // Import diffs will make updating this hell -> any
+    _columnCache: new WeakMap<any, any>(),
     atoms: {},
   } as unknown as Table_Internal<TFeatures, TData>
 

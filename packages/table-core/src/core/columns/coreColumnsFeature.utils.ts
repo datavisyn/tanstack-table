@@ -273,3 +273,23 @@ export function table_getColumn<
 
   return column
 }
+
+export function table_getCachedColumn<
+  TFeatures extends TableFeatures,
+  TData extends RowData,
+>(
+  table: Table_Internal<TFeatures, TData>,
+  columnId: string,
+): Column<TFeatures, TData, unknown> | undefined {
+  const columnDefs = table.options.columns
+  const cache = table._columnCache;
+
+  let columnsById = cache.get(columnDefs)
+
+  if (!columnsById) {
+    columnsById = table.getAllFlatColumnsById()
+    cache.set(columnDefs, columnsById)
+  }
+
+  return columnsById[columnId]
+}

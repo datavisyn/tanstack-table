@@ -113,4 +113,5 @@ export interface Table_Internal<
   baseAtoms: BaseAtoms<TFeatures> & BaseAtoms_All
   atoms: Atoms<TFeatures> & Atoms_All
   store: ReadonlyStore<TableState<TFeatures>> & ReadonlyStore<TableState_All>
+  _columnCache: WeakMap<any, any>
 }
