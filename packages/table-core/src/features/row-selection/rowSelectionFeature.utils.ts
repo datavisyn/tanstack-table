@@ -416,7 +416,11 @@ export function table_getIsSomePageRowsSelected<
   return table
     .getPaginatedRowModel()
     .flatRows.filter((row) => row_getCanSelect(row))
-    .some((row) => row_getIsSelected(row) || row_getIsSomeSelected(row))
+    .some(
+      (row) =>
+        row_getIsSelected(row) ||
+        callMemoOrStaticFn(row, 'getIsSomeSelected', row_getIsSomeSelected),
+    )
 }
 
 /**
@@ -496,10 +500,6 @@ export function row_toggleSelected<
 
   table_setRowSelection(row.table, (old) => {
     value = typeof value !== 'undefined' ? value : !isSelected
-
-    if (row_getCanSelect(row) && isSelected === value) {
-      return old
-    }
 
     const rowSelection = Object.assign(makeObjectMap<true>(), old)
 
@@ -787,13 +787,15 @@ export function isSubRowSelected<
 
   const rowSelection = row.table.atoms.rowSelection?.get() ?? {}
 
-  let allChildrenSelected = true
   let someSelected = false
+  let allChildrenSelected = true
 
-  row.subRows.forEach((subRow) => {
+  for (let i = 0; i < row.subRows.length; i++) {
+    const subRow = row.subRows[i]!
+
     // Bail out early if we know both of these
     if (someSelected && !allChildrenSelected) {
-      return
+      break
     }
 
     if (row_getCanSelect(subRow)) {
@@ -816,8 +818,7 @@ export function isSubRowSelected<
         allChildrenSelected = false
       }
     }
-  })
+  }
 
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   return allChildrenSelected ? 'all' : someSelected ? 'some' : false
 }
