@@ -51,6 +51,28 @@ export function cloneState<T>(value: T): T {
 }
 
 /**
+ * Copies prototype-instance own properties without carrying over lazy memo
+ * closures or the per-row cell cache, both of which are bound to the source
+ * instance (cached cells reference the source row).
+ */
+export function copyInstancePropertiesWithoutMemos<
+  TTarget extends Record<string, any>,
+  TSource extends Record<string, any>,
+>(target: TTarget, source: TSource): TTarget & TSource {
+  const keys = Object.keys(source)
+  const targetRecord = target as Record<string, any>
+
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]!
+    if (!key.startsWith('_memo_') && key !== '_cellsCache') {
+      targetRecord[key] = source[key]
+    }
+  }
+
+  return target as TTarget & TSource
+}
+
+/**
  * Creates an object intended only for string-keyed dictionary lookups.
  *
  * The null prototype keeps user-controlled ids such as `__proto__` and
@@ -338,7 +360,7 @@ export function tableMemo<
   })
 }
 
-export interface API<TDeps extends ReadonlyArray<any>, TDepArgs> {
+export interface API<_TDeps extends ReadonlyArray<any>, _TDepArgs> {
   fn: (...args: any) => any
   memoDeps?: (depArgs?: any) => [...any] | undefined
 }
@@ -393,7 +415,7 @@ export function assignTableAPIs<
   }
 }
 
-export interface PrototypeAPI<TDeps extends ReadonlyArray<any>, TDepArgs> {
+export interface PrototypeAPI<_TDeps extends ReadonlyArray<any>, _TDepArgs> {
   fn: (self: any, ...args: any) => any
   memoDeps?: (self: any, depArgs?: any) => [...any] | undefined
 }

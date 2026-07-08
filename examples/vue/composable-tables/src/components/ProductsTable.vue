@@ -47,7 +47,7 @@ function refreshData() {
 }
 
 function stressTest() {
-  data.value = makeProductData(200_000)
+  data.value = makeProductData(1_000_000)
 }
 
 const table = useAppTable({
@@ -106,7 +106,10 @@ useTanStackTableDevtools(table)
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row in table.getRowModel().rows" :key="row.id">
+            <tr
+              v-for="row in table.getRowModel().rows"
+              :key="row.id + JSON.stringify(row.original)"
+            >
               <component
                 :is="table.AppCell"
                 v-for="cell in row.getAllCells()"

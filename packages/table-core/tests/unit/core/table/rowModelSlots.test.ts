@@ -4,7 +4,6 @@ import {
   columnResizingFeature,
   columnSizingFeature,
   constructTable,
-  coreFeatures,
   createFilteredRowModel,
   createPaginatedRowModel,
   createSortedRowModel,
@@ -15,7 +14,7 @@ import {
   sortFns,
   tableFeatures,
 } from '../../../../src'
-import { storeReactivityBindings } from '../../../../src/store-reactivity-bindings'
+import { testFeatures } from '../../../fixtures/features'
 import type {
   AggregationFns,
   ExtractAggregationFnKeys,
@@ -47,6 +46,12 @@ interface Person {
   age: number
 }
 
+interface SortRecord {
+  name: string
+  priority?: number
+  score: number
+}
+
 // Custom fns annotated against the broad `TableFeatures` interface so they can
 // be defined before (and registered inside) the features object.
 const reverseAge: SortFn<TableFeatures, Person> = (rowA, rowB, columnId) =>
@@ -75,11 +80,7 @@ function createTestTable(
   initialState?: TableOptions<typeof features, Person>['initialState'],
 ) {
   return constructTable({
-    features: {
-      ...coreFeatures,
-      coreReactivityFeature: storeReactivityBindings(),
-      ...features,
-    },
+    features: testFeatures(features),
     columns: [
       { accessorKey: 'firstName', id: 'firstName' },
       { accessorKey: 'age', id: 'age', sortFn: 'reverseAge' },
@@ -120,6 +121,42 @@ describe('row model and fn registry feature slots', () => {
     ).toEqual([40, 30, 20])
   })
 
+  it('preserves multi-sort metadata resolution order', () => {
+    const table = constructTable({
+      features: testFeatures(features),
+      columns: [
+        { accessorKey: 'name', id: 'name' },
+        {
+          accessorKey: 'priority',
+          id: 'priority',
+          sortUndefined: 'last',
+        },
+        {
+          accessorKey: 'score',
+          id: 'score',
+          invertSorting: true,
+        },
+      ],
+      data: [
+        { name: 'a', priority: 1, score: 10 },
+        { name: 'b', score: 5 },
+        { name: 'c', priority: 1, score: 20 },
+        { name: 'd', score: 10 },
+        { name: 'e', priority: 2, score: 30 },
+      ] satisfies Array<SortRecord>,
+      initialState: {
+        sorting: [
+          { id: 'priority', desc: false },
+          { id: 'score', desc: false },
+        ],
+      },
+    })
+
+    expect(
+      table.getSortedRowModel().rows.map((row) => row.original.name),
+    ).toEqual(['c', 'a', 'e', 'd', 'b'])
+  })
+
   it('filters with a custom filter fn registered in the slot', () => {
     const table = createTestTable({
       columnFilters: [{ id: 'firstName', value: 'anything' }],
@@ -140,10 +177,10 @@ describe('row model and fn registry feature slots', () => {
 
   it('infers fn name unions from the registries', () => {
     // registered keys (built-ins spread + custom) are the valid names
-    type _sortKeys = Expect<
+    true satisfies Expect<
       Equal<ExtractSortFnKeys<typeof features>, BuiltInSortFn | 'reverseAge'>
     >
-    type _filterKeys = Expect<
+    true satisfies Expect<
       Equal<
         ExtractFilterFnKeys<typeof features>,
         BuiltInFilterFn | 'startsWithA'
@@ -184,13 +221,13 @@ describe('row model and fn registry feature slots', () => {
       'alphanumeric'
 
     // declaration-merged interfaces remain the fallback (empty by default)
-    type _sortFallback = Expect<
+    true satisfies Expect<
       Equal<ExtractSortFnKeys<typeof slotlessFeatures>, keyof SortFns>
     >
-    type _filterFallback = Expect<
+    true satisfies Expect<
       Equal<ExtractFilterFnKeys<typeof slotlessFeatures>, keyof FilterFns>
     >
-    type _aggregationFallback = Expect<
+    true satisfies Expect<
       Equal<
         ExtractAggregationFnKeys<typeof slotlessFeatures>,
         keyof AggregationFns
@@ -198,10 +235,10 @@ describe('row model and fn registry feature slots', () => {
     >
 
     // internal `any` feature paths keep the broad unions
-    type _anySortKeys = Expect<
+    true satisfies Expect<
       Equal<ExtractSortFnKeys<any>, keyof SortFns | BuiltInSortFn>
     >
-    type _anyAggregationKeys = Expect<
+    true satisfies Expect<
       Equal<
         ExtractAggregationFnKeys<any>,
         keyof AggregationFns | BuiltInAggregationFn
@@ -215,11 +252,9 @@ describe('row model and fn registry feature slots', () => {
     type Options = TableOptions<typeof features, Person>
 
     // the rowModels table option is gone
-    type _noRowModelsOption = Expect<
-      Equal<Extract<keyof Options, 'rowModels'>, never>
-    >
+    true satisfies Expect<Equal<Extract<keyof Options, 'rowModels'>, never>>
     // no debug keys for the slots
-    type _noDebugKeys = Expect<
+    true satisfies Expect<
       Equal<
         Extract<
           keyof Options,
@@ -232,7 +267,7 @@ describe('row model and fn registry feature slots', () => {
       >
     >
     // feature-gated options are still inferred
-    type _featureOptions = Expect<
+    true satisfies Expect<
       'onSortingChange' extends keyof Options ? true : false
     >
 
@@ -293,16 +328,21 @@ describe('row model and fn registry feature slots', () => {
   })
 
   it('validates slots on the features table option too', () => {
-    type _featuresOption = TableOptions<
-      { rowSortingFeature: typeof rowSortingFeature },
-      Person
-    >['features']
+    // the features table option type resolves without collapsing to never
+    true satisfies [
+      TableOptions<
+        { rowSortingFeature: typeof rowSortingFeature },
+        Person
+      >['features'],
+    ] extends [never]
+      ? false
+      : true
 
     // the misplaced slot's type collapses to the error message string
     type _misplacedSlot = ValidateFeatureSlots<{
       sortedRowModel: NonNullable<TableFeatures['sortedRowModel']>
     }>['sortedRowModel']
-    type _isErrorMessage = Expect<
+    true satisfies Expect<
       _misplacedSlot extends `Error: 'sortedRowModel' requires '${string}'${string}`
         ? true
         : false
@@ -313,7 +353,7 @@ describe('row model and fn registry feature slots', () => {
       rowSortingFeature: typeof rowSortingFeature
       sortFns: typeof sortFns
     }>['sortFns']
-    type _keepsType = Expect<Equal<_validSlot, typeof sortFns>>
+    true satisfies Expect<Equal<_validSlot, typeof sortFns>>
 
     expect(true).toBe(true)
   })

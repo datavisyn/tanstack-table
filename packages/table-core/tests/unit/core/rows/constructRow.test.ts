@@ -1,28 +1,27 @@
 import { describe, expect, it } from 'vitest'
-import { coreRowsFeature } from '../../../../src/core/rows/coreRowsFeature'
+import { constructTable } from '../../../../src'
 import { constructRow } from '../../../../src/core/rows/constructRow'
-import type { Table_Internal } from '../../../../src/types/Table'
+import { testFeatures } from '../../../fixtures/features'
 import type { Row } from '../../../../src/types/Row'
-
-type TestFeatures = {
-  coreRowsFeature: typeof coreRowsFeature
-}
 
 interface Person {
   firstName: string
 }
 
+const features = testFeatures({})
+
 describe('constructRow', () => {
   it('should create a row with all core row APIs and properties', () => {
-    const table = {
-      _features: { coreRowsFeature },
-      options: {},
-    } as unknown as Table_Internal<TestFeatures, Person>
+    const table = constructTable<typeof features, Person>({
+      features,
+      columns: [],
+      data: [],
+    })
     const id = 'test-row'
     const original = { firstName: 'Tanner' }
     const rowIndex = 0
     const depth = 0
-    const subRows = [] as Array<Row<TestFeatures, Person>>
+    const subRows = [] as Array<Row<typeof features, Person>>
     const parentId = 'parent-id'
 
     const row = constructRow(
@@ -59,5 +58,34 @@ describe('constructRow', () => {
     expect(row.depth).toBe(depth)
     expect(row.subRows).toBe(subRows)
     expect(row.parentId).toBe(parentId)
+  })
+
+  it('memoizes getLeafRows until subRows changes', () => {
+    const table = constructTable<typeof features, Person>({
+      features,
+      columns: [],
+      data: [],
+    })
+
+    const leafA = constructRow(table, 'leaf-a', { firstName: 'A' }, 0, 1, [])
+    const leafB = constructRow(table, 'leaf-b', { firstName: 'B' }, 1, 1, [])
+    const parent = constructRow(
+      table,
+      'parent',
+      { firstName: 'Parent' },
+      0,
+      0,
+      [leafA, leafB],
+    )
+
+    const firstLeafRows = parent.getLeafRows()
+    expect(parent.getLeafRows()).toBe(firstLeafRows)
+    expect(firstLeafRows).toEqual([leafA, leafB])
+
+    parent.subRows = [leafB, leafA]
+
+    const nextLeafRows = parent.getLeafRows()
+    expect(nextLeafRows).not.toBe(firstLeafRows)
+    expect(nextLeafRows).toEqual([leafB, leafA])
   })
 })

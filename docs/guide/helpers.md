@@ -2,8 +2,6 @@
 title: Helpers Guide
 ---
 
-## Helpers Guide
-
 TanStack Table exposes a few small helper functions for authoring table configuration with better TypeScript inference. They do not add behavior by themselves. Instead, they help TypeScript preserve the relationship between your feature set, row type, column definitions, table options, and named function registries.
 
 The most common helpers are:
@@ -63,7 +61,11 @@ Keep `features` stable. In most apps, define it outside your component or in sha
 `metaHelper()` is useful when declaring type-only meta slots in `tableFeatures()`. It is equivalent to writing `{} as MyMeta`, but makes the intent clearer and avoids lint rules accidentally removing the type assertion:
 
 ```ts
-import { metaHelper, rowSortingFeature, tableFeatures } from '@tanstack/react-table'
+import {
+  metaHelper,
+  rowSortingFeature,
+  tableFeatures,
+} from '@tanstack/react-table'
 
 type MyTableMeta = {
   updateData: (rowIndex: number, columnId: string, value: unknown) => void

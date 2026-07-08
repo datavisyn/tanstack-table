@@ -57,7 +57,7 @@ function refreshData() {
 }
 
 function stressTest() {
-  data.value = makeData(200_000)
+  data.value = makeData(1_000_000)
 }
 
 const table = useAppTable({
@@ -126,7 +126,10 @@ const sorting = computed(() => table.atoms.sorting.get())
             </tr>
           </thead>
           <tbody>
-            <tr v-for="row in table.getRowModel().rows" :key="row.id">
+            <tr
+              v-for="row in table.getRowModel().rows"
+              :key="row.id + JSON.stringify(row.original)"
+            >
               <component
                 :is="table.AppCell"
                 v-for="cell in row.getAllCells()"

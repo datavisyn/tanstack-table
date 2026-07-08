@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { constructTable, coreFeatures } from '../../../../src'
-import { storeReactivityBindings } from '../../../../src/store-reactivity-bindings'
+import { constructTable } from '../../../../src'
+import { table_mergeOptions } from '../../../../src/static-functions'
+import { testFeatures } from '../../../fixtures/features'
 
 function getterOnlyMerge(...sources: Array<any>) {
   const target = {}
@@ -35,10 +36,7 @@ function getterOnlyMerge(...sources: Array<any>) {
 describe('constructTable', () => {
   it('should create a table with all core table APIs and properties', () => {
     const table = constructTable({
-      features: {
-        ...coreFeatures,
-        coreReactivityFeature: storeReactivityBindings(),
-      },
+      features: testFeatures({}),
       columns: [],
       data: [],
     })
@@ -78,18 +76,12 @@ describe('constructTable', () => {
   })
 
   it('preserves static options without mutating mergeOptions results', () => {
-    const features = {
-      ...coreFeatures,
-      coreReactivityFeature: storeReactivityBindings(),
-    }
+    const features = testFeatures({})
     const atoms = {}
     const initialState = {}
     const data: Array<{ id: number }> = []
     const nextData = [{ id: 1 }]
-    const nextFeatures = {
-      ...coreFeatures,
-      coreReactivityFeature: storeReactivityBindings(),
-    }
+    const nextFeatures = testFeatures({})
     const nextAtoms = {}
     const nextInitialState = {}
 
@@ -117,5 +109,55 @@ describe('constructTable', () => {
     expect(table.options.features).toBe(features)
     expect(table.options.atoms).toBe(atoms)
     expect(table.options.initialState).toBe(initialState)
+  })
+})
+
+describe('table_mergeOptions', () => {
+  it('should shallow-merge options while restoring static options', () => {
+    const features = testFeatures({})
+    const atoms = {}
+    const initialState = {}
+    const table = constructTable<typeof features, { id: number }>({
+      features,
+      atoms,
+      initialState,
+      columns: [],
+      data: [],
+    })
+
+    const nextData = [{ id: 1 }]
+    const merged = table_mergeOptions(table, {
+      ...table.options,
+      data: nextData,
+      features: testFeatures({}),
+      atoms: {},
+      initialState: {},
+    })
+
+    expect(merged.data).toBe(nextData)
+    // static options are restored from the original table options
+    expect(merged.features).toBe(features)
+    expect(merged.atoms).toBe(atoms)
+    expect(merged.initialState).toBe(initialState)
+  })
+
+  it('should delegate to options.mergeOptions and preserve getters', () => {
+    const features = testFeatures({})
+    const table = constructTable<typeof features, { id: number }>({
+      features,
+      columns: [],
+      data: [],
+      mergeOptions: (defaultOptions, options) =>
+        getterOnlyMerge(defaultOptions, options) as any,
+    })
+
+    const nextData = [{ id: 1 }]
+    const merged = table_mergeOptions(table, {
+      ...table.options,
+      data: nextData,
+    })
+
+    expect(merged.data).toBe(nextData)
+    expect(merged.features).toBe(features)
   })
 })

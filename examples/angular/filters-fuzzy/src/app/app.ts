@@ -10,10 +10,10 @@ import {
   filterFns,
   globalFilteringFeature,
   injectTable,
+  metaHelper,
   rowPaginationFeature,
   rowSortingFeature,
   sortFns,
-  metaHelper,
   tableFeatures,
 } from '@tanstack/angular-table'
 import { DebouncedInput } from './debounced-input/debounced-input'
@@ -104,7 +104,7 @@ export class App {
     return JSON.stringify(this.table.store.get(), null, 2)
   }
   refreshData = () => this.data.set(makeData(1_000))
-  stressTest = () => this.data.set(makeData(50_000))
+  stressTest = () => this.data.set(makeData(1_000_000))
   onGlobalFilter(event: Event) {
     this.table.setGlobalFilter((event.target as HTMLInputElement).value)
   }

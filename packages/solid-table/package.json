@@ -1,6 +1,6 @@
 {
   "name": "@tanstack/solid-table",
-  "version": "9.0.0-beta.26",
+  "version": "9.0.0-beta.36",
   "description": "Headless UI for building powerful tables & datagrids for Solid.",
   "author": "Tanner Linsley",
   "license": "MIT",
@@ -35,6 +35,11 @@
       "import": "./dist/static-functions.js",
       "require": "./dist/static-functions.cjs"
     },
+    "./experimental-worker-plugin": {
+      "solid": "./dist/experimental-worker-plugin.js",
+      "import": "./dist/experimental-worker-plugin.js",
+      "require": "./dist/experimental-worker-plugin.cjs"
+    },
     "./flex-render": {
       "solid": "./dist/flex-render.js",
       "import": "./dist/flex-render.js",
@@ -44,7 +49,7 @@
   },
   "sideEffects": false,
   "engines": {
-    "node": ">=16"
+    "node": ">=20"
   },
   "files": [
     "dist",

@@ -16,7 +16,12 @@ Use getters for reactive inputs such as `data` when passing Svelte state to `cre
 Here's how you set up your table to use column resizing features. Column resizing depends on column sizing, so add `columnSizingFeature` before `columnResizingFeature`. Adding the column resizing feature enables the related APIs.
 
 ```ts
-import { createTable, tableFeatures, columnSizingFeature, columnResizingFeature } from '@tanstack/svelte-table'
+import {
+  createTable,
+  tableFeatures,
+  columnSizingFeature,
+  columnResizingFeature,
+} from '@tanstack/svelte-table'
 
 const features = tableFeatures({
   columnSizingFeature,
@@ -198,13 +203,13 @@ import type { columnResizingState } from '@tanstack/svelte-table'
 
 const [columnResizing, setColumnResizing] =
   createTableState<columnResizingState>({
-  columnSizingStart: [],
-  deltaOffset: null,
-  deltaPercentage: null,
-  isResizingColumn: false,
-  startOffset: null,
-  startSize: null,
-})
+    columnSizingStart: [],
+    deltaOffset: null,
+    deltaPercentage: null,
+    isResizingColumn: false,
+    startOffset: null,
+    startSize: null,
+  })
 
 const table = createTable({
   features,
@@ -232,7 +237,7 @@ column.getIsResizing()
 The table instance exposes APIs for the transient resize state. Note that the current v9 API spelling is `table.setcolumnResizing` with a lowercase `c` in `column`; use that exact name.
 
 ```ts
-table.setcolumnResizing(old => ({
+table.setcolumnResizing((old) => ({
   ...old,
   deltaOffset: 12,
 }))
@@ -243,12 +248,9 @@ table.resetHeaderSizeInfo(true)
 
 ### Advanced Column Resizing Performance
 
-If you are creating large or complex tables with Svelte, expensive cell markup can still make `"onChange"` resizing feel sluggish, even with Svelte's fine-grained reactivity, because every drag movement invalidates anything that reads column sizes.
+Svelte 5's fine-grained reactivity means a resize does not re-render whole components, but if every header and data cell reads `column.getSize()`, an `"onChange"` drag still invalidates a lot per frame. The [performant column resizing example](../examples/column-resizing-performant) shows how to reduce a drag to a single attribute update.
 
-We have created a [performant column resizing example](../examples/column-resizing-performant) that demonstrates how to achieve 60 fps column resizing with a complex table that may otherwise update slowly. It is recommended that you just look at that example to see how it is done, but these are the basic things to keep in mind:
+1. **Derive all column widths in one `$derived` value.** Build a single style string that maps each header and column id to a CSS variable, then bind it on the `<table>` element (`<table style={tableStyle}>`). `header.getSize()` reads the rune-backed `columnSizing` atom, so a drag re-runs only this derived and its single attribute effect.
+2. **Reference the variables in cell styles** (`width: calc(var(--col-firstName-size) * 1px)`) so the browser applies new widths without Svelte re-evaluating each cell.
 
-1. Narrow the `createTable` selector to only the state your markup needs while resizing (the example selects just `columnSizing` and `columnResizing`), so unrelated state changes do not trigger updates.
-2. Don't call `column.getSize()` in every header and every data cell. Instead, calculate all column widths once per sizing change (the example's `getColumnSizeVars` helper loops over `table.getFlatHeaders()` once).
-3. Use CSS variables to communicate column widths to your table cells (for example, `width: calc(var(--col-firstName-size) * 1px)`). The browser then handles the width changes without Svelte re-evaluating each cell.
-
-If you follow these steps, you should see significant performance improvements while resizing columns.
+Because nothing in the table body reads resize state, no body memoization is needed, and you do not need a `createTable` selector for this pattern; the resizer's highlight is its own inline binding.

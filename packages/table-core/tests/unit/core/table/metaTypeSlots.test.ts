@@ -2,12 +2,11 @@ import { describe, expect, it } from 'vitest'
 import {
   columnFilteringFeature,
   constructTable,
-  coreFeatures,
   metaHelper,
   rowSortingFeature,
   tableFeatures,
 } from '../../../../src'
-import { storeReactivityBindings } from '../../../../src/store-reactivity-bindings'
+import { testFeatures } from '../../../fixtures/features'
 import type {
   CellData,
   ColumnMeta,
@@ -51,11 +50,7 @@ describe('tableMeta/columnMeta type-only feature slots', () => {
 
   it('strips the type-only slots from the registered features at runtime', () => {
     const table = constructTable({
-      features: {
-        ...coreFeatures,
-        coreReactivityFeature: storeReactivityBindings(),
-        ...features,
-      },
+      features: testFeatures(features),
       columns: [],
       data: [] as Array<Person>,
       meta: {
@@ -70,15 +65,15 @@ describe('tableMeta/columnMeta type-only feature slots', () => {
   })
 
   it('infers meta types from the features object', () => {
-    type _extractedTableMeta = Expect<
+    true satisfies Expect<
       Equal<ExtractTableMeta<typeof features, Person>, MyTableMeta>
     >
-    type _extractedColumnMeta = Expect<
+    true satisfies Expect<
       Equal<ExtractColumnMeta<typeof features, Person>, MyColumnMeta>
     >
 
     // options.meta resolves to the declared table meta type
-    type _optionsMeta = Expect<
+    true satisfies Expect<
       Equal<
         TableOptions<typeof features, Person>['meta'],
         MyTableMeta | undefined
@@ -86,14 +81,14 @@ describe('tableMeta/columnMeta type-only feature slots', () => {
     >
 
     // feature option extraction is undisturbed by the phantom keys
-    type _featureOptions = Expect<
+    true satisfies Expect<
       'onSortingChange' extends keyof TableOptions<typeof features, Person>
         ? true
         : false
     >
 
     // no debug options are generated for the type-only slots
-    type _noDebugKeys = Expect<
+    true satisfies Expect<
       Equal<
         Extract<
           keyof TableOptions<typeof features, Person>,
@@ -109,13 +104,13 @@ describe('tableMeta/columnMeta type-only feature slots', () => {
   it('falls back to declaration-merged interfaces when slots are omitted', () => {
     const plainFeatures = tableFeatures({ rowSortingFeature })
 
-    type _tableMetaFallback = Expect<
+    true satisfies Expect<
       Equal<
         ExtractTableMeta<typeof plainFeatures, Person>,
         TableMeta<typeof plainFeatures, Person>
       >
     >
-    type _columnMetaFallback = Expect<
+    true satisfies Expect<
       Equal<
         ExtractColumnMeta<typeof plainFeatures, Person>,
         ColumnMeta<typeof plainFeatures, Person, CellData>
@@ -123,7 +118,7 @@ describe('tableMeta/columnMeta type-only feature slots', () => {
     >
 
     // internal `any` feature paths also use the fallback
-    type _anyFallback = Expect<
+    true satisfies Expect<
       Equal<ExtractTableMeta<any, Person>, TableMeta<any, Person>>
     >
 
@@ -142,11 +137,7 @@ describe('tableMeta/columnMeta type-only feature slots', () => {
 
     it('strips the filterMeta slot from the registered features at runtime', () => {
       const table = constructTable({
-        features: {
-          ...coreFeatures,
-          coreReactivityFeature: storeReactivityBindings(),
-          ...filteringFeatures,
-        },
+        features: testFeatures(filteringFeatures),
         columns: [],
         data: [] as Array<Person>,
       })
@@ -156,12 +147,12 @@ describe('tableMeta/columnMeta type-only feature slots', () => {
     })
 
     it('flows the declared type into addMeta and columnFiltersMeta', () => {
-      type _extractedFilterMeta = Expect<
+      true satisfies Expect<
         Equal<ExtractFilterMeta<typeof filteringFeatures>, MyFilterMeta>
       >
 
       // FilterFn's addMeta callback receives the declared meta type
-      type _addMetaParam = Expect<
+      true satisfies Expect<
         Equal<
           Parameters<
             NonNullable<
@@ -173,7 +164,7 @@ describe('tableMeta/columnMeta type-only feature slots', () => {
       >
 
       // row.columnFiltersMeta values resolve to the declared meta type
-      type _rowFilterMeta = Expect<
+      true satisfies Expect<
         Equal<
           Row<typeof filteringFeatures, Person>['columnFiltersMeta'],
           Record<string, MyFilterMeta>
@@ -182,12 +173,10 @@ describe('tableMeta/columnMeta type-only feature slots', () => {
 
       // fallback to the declaration-merged FilterMeta interface
       const plainFeatures = tableFeatures({ columnFilteringFeature })
-      type _filterMetaFallback = Expect<
+      true satisfies Expect<
         Equal<ExtractFilterMeta<typeof plainFeatures>, FilterMeta>
       >
-      type _anyFilterMetaFallback = Expect<
-        Equal<ExtractFilterMeta<any>, FilterMeta>
-      >
+      true satisfies Expect<Equal<ExtractFilterMeta<any>, FilterMeta>>
 
       expect(true).toBe(true)
     })

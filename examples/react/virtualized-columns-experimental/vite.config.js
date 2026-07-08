@@ -5,6 +5,9 @@ import rollupReplace from '@rollup/plugin-replace'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  server: {
+    port: 6565,
+  },
   plugins: [
     rollupReplace({
       preventAssignment: true,
@@ -15,9 +18,12 @@ export default defineConfig({
     }),
     react(),
     // React Compiler - comment out the next line to disable
-    babel({
-      presets: [reactCompilerPreset()],
-      include: [/\/src\/.*\.[jt]sx?$/],
-    }),
+    // NOTE: kept disabled here because the compiler memoizes getter calls like
+    // `header.getSize()` on stable table objects, which breaks live column
+    // resizing in extracted components
+    // babel({
+    //   presets: [reactCompilerPreset()],
+    //   include: [/\/src\/.*\.[jt]sx?$/],
+    // }),
   ],
 })

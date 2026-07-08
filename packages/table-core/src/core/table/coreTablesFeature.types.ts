@@ -12,6 +12,7 @@ import type { CachedRowModels } from '../../types/RowModel'
 import type { TableOptions } from '../../types/TableOptions'
 import type { TableState, TableState_All } from '../../types/TableState'
 
+// @ts-expect-error Phantom type params: unused in this empty base declaration, but required with these exact names so user `declare module` augmentations merge correctly.
 export interface TableMeta<
   in out TFeatures extends TableFeatures,
   in out TData extends RowData,
@@ -74,13 +75,13 @@ export type ExternalAtoms<TFeatures extends TableFeatures> = Partial<{
  * use optional chaining (`table.atoms.columnPinning?.get() ?? default`).
  */
 export type BaseAtoms_All = {
-  [K in keyof TableState_All]?: Atom<TableState_All[K]>
+  [K in keyof TableState_All]?: Atom<Exclude<TableState_All[K], undefined>>
 }
 export type Atoms_All = {
   [K in keyof TableState_All]?: ReadonlyAtom<TableState_All[K]>
 }
 export type ExternalAtoms_All = Partial<{
-  [K in keyof TableState_All]: Atom<TableState_All[K]>
+  [K in keyof TableState_All]: Atom<Exclude<TableState_All[K], undefined>>
 }>
 
 export interface TableOptions_Table<

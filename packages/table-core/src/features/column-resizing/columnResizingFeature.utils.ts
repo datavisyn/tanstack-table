@@ -130,60 +130,112 @@ export function header_getResizeHandler<
         return
       }
 
-      table_setColumnResizing(column.table, (old) => {
-        const deltaDirection =
-          column.table.options.columnResizeDirection === 'rtl' ? -1 : 1
-        const deltaOffset =
-          (clientXPos - (old.startOffset ?? 0)) * deltaDirection
-        const startSize = old.startSize ?? 0
-        const deltaPercentage = Math.max(
-          startSize > 0 ? deltaOffset / startSize : 0,
-          -0.999999,
-        )
+      const table = column.table
+      const isCommit =
+        table.options.columnResizeMode === 'onChange' || eventType === 'end'
 
-        old.columnSizingStart.forEach(([columnId, headerSize]) => {
-          newColumnSizing[columnId] =
-            Math.round(
-              Math.max(
-                headerSize > 0
-                  ? headerSize + headerSize * deltaPercentage
-                  : deltaOffset / old.columnSizingStart.length,
-                0,
-              ) * 100,
-            ) / 100
+      // one notification flush per tick instead of two
+      table._reactivity.batch(() => {
+        table_setColumnResizing(table, (old) => {
+          const deltaDirection =
+            table.options.columnResizeDirection === 'rtl' ? -1 : 1
+          const deltaOffset =
+            (clientXPos - (old.startOffset ?? 0)) * deltaDirection
+          const startSize = old.startSize ?? 0
+          const deltaPercentage = Math.max(
+            startSize > 0 ? deltaOffset / startSize : 0,
+            -0.999999,
+          )
+
+          // new sizes are only read at commit and are recomputed from
+          // absolute positions each time, so skip them on onEnd-mode moves
+          if (isCommit) {
+            const columnSizingStart = old.columnSizingStart
+            for (let i = 0; i < columnSizingStart.length; i++) {
+              const entry = columnSizingStart[i]!
+              const headerSize = entry[1]
+              newColumnSizing[entry[0]] =
+                Math.round(
+                  Math.max(
+                    headerSize > 0
+                      ? headerSize + headerSize * deltaPercentage
+                      : deltaOffset / columnSizingStart.length,
+                    0,
+                  ) * 100,
+                ) / 100
+            }
+          }
+
+          return {
+            ...old,
+            deltaOffset,
+            deltaPercentage,
+          }
         })
 
-        return {
-          ...old,
-          deltaOffset,
-          deltaPercentage,
+        if (isCommit) {
+          table_setColumnSizing(table, (old) =>
+            Object.assign(makeObjectMap<number>(), old, newColumnSizing),
+          )
         }
       })
+    }
 
-      if (
-        column.table.options.columnResizeMode === 'onChange' ||
-        eventType === 'end'
-      ) {
-        table_setColumnSizing(column.table, (old) =>
-          Object.assign(makeObjectMap<number>(), old, newColumnSizing),
-        )
+    // Pointer devices can report at several times the display refresh rate,
+    // and every update between frames is overwritten by the next one. Apply
+    // the first move of a frame immediately, then coalesce the rest into one
+    // update per animation frame.
+    let moveRafId: number | null = null
+    let hasPendingMove = false
+    let latestMoveX: number | undefined
+
+    const flushMove = () => {
+      if (hasPendingMove) {
+        hasPendingMove = false
+        updateOffset('move', latestMoveX)
+        moveRafId = requestAnimationFrame(flushMove)
+      } else {
+        moveRafId = null
       }
     }
 
-    const onMove = (clientXPos?: number) => updateOffset('move', clientXPos)
+    const onMove = (clientXPos?: number) => {
+      latestMoveX = clientXPos
+      if (typeof requestAnimationFrame !== 'function') {
+        updateOffset('move', clientXPos)
+        return
+      }
+      if (moveRafId !== null) {
+        hasPendingMove = true
+        return
+      }
+      updateOffset('move', clientXPos)
+      moveRafId = requestAnimationFrame(flushMove)
+    }
 
     const onEnd = (clientXPos?: number) => {
-      updateOffset('end', clientXPos)
+      if (moveRafId !== null) {
+        cancelAnimationFrame(moveRafId)
+        moveRafId = null
+        hasPendingMove = false
+      }
 
-      table_setColumnResizing(column.table, (old) => ({
-        ...old,
-        isResizingColumn: false,
-        startOffset: null,
-        startSize: null,
-        deltaOffset: null,
-        deltaPercentage: null,
-        columnSizingStart: [],
-      }))
+      // batch the 'end' commit and the reset into one notification flush
+      column.table._reactivity.batch(() => {
+        // touchend events carry no touch position, so fall back to the last
+        // observed move position for the final commit
+        updateOffset('end', clientXPos ?? latestMoveX)
+
+        table_setColumnResizing(column.table, (old) => ({
+          ...old,
+          isResizingColumn: false,
+          startOffset: null,
+          startSize: null,
+          deltaOffset: null,
+          deltaPercentage: null,
+          columnSizingStart: [],
+        }))
+      })
     }
 
     const contextDocument =
@@ -211,17 +263,29 @@ export function header_getResizeHandler<
         return false
       },
       upHandler: (e: TouchEvent) => {
-        contextDocument?.removeEventListener(
-          'touchmove',
-          touchEvents.moveHandler,
-        )
-        contextDocument?.removeEventListener('touchend', touchEvents.upHandler)
+        removeTouchEvents()
         if (e.cancelable) {
           e.preventDefault()
           e.stopPropagation()
         }
         onEnd(e.touches[0]?.clientX)
       },
+      // the browser fires touchcancel instead of touchend when it takes over
+      // the gesture (system gesture, scroll takeover, tab switch); without
+      // this the non-passive touchmove listener stays on the document forever
+      cancelHandler: () => {
+        removeTouchEvents()
+        onEnd()
+      },
+    }
+
+    const removeTouchEvents = () => {
+      contextDocument?.removeEventListener('touchmove', touchEvents.moveHandler)
+      contextDocument?.removeEventListener('touchend', touchEvents.upHandler)
+      contextDocument?.removeEventListener(
+        'touchcancel',
+        touchEvents.cancelHandler,
+      )
     }
 
     const passiveIfSupported = passiveEventSupported()
@@ -237,6 +301,11 @@ export function header_getResizeHandler<
       contextDocument?.addEventListener(
         'touchend',
         touchEvents.upHandler,
+        passiveIfSupported,
+      )
+      contextDocument?.addEventListener(
+        'touchcancel',
+        touchEvents.cancelHandler,
         passiveIfSupported,
       )
     } else {

@@ -1,39 +1,33 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
+  aggregationFns,
+  columnFilteringFeature,
+  columnGroupingFeature,
   constructTable,
-  coreFeatures,
-  createColumnHelper,
+  createFilteredRowModel,
+  createGroupedRowModel,
+  createSortedRowModel,
+  filterFns,
   rowSelectionFeature,
+  rowSortingFeature,
+  sortFns,
 } from '../../../../src'
 import * as RowSelectionUtils from '../../../../src/features/row-selection/rowSelectionFeature.utils'
-import { generateTestData } from '../../../fixtures/data/generateTestData'
-import { storeReactivityBindings } from '../../../../src/store-reactivity-bindings'
+import { testFeatures } from '../../../fixtures/features'
+import { generateTestColumnDefs } from '../../../fixtures/data/generateTestColumnDefs'
+import {
+  generateTestData,
+  getStaticTestData,
+} from '../../../fixtures/data/generateTestData'
 import type { Person } from '../../../fixtures/data/types'
-import type { ColumnDef, Row, Table_Internal } from '../../../../src'
+import type { ColumnDef, Row } from '../../../../src'
 
-// TODO: bring up to new test structure
-
-const features = {
-  ...coreFeatures,
+const features = testFeatures({
   rowSelectionFeature,
-  coreReactivityFeature: storeReactivityBindings(),
-}
+})
 
-type personKeys = keyof Person
-type PersonColumn = ColumnDef<typeof features, Person, any>
-
-function generateColumnDefs(people: Array<Person>): Array<PersonColumn> {
-  const columnHelper = createColumnHelper<typeof features, Person>()
-  const person = people[0]
-
-  if (!person) {
-    return []
-  }
-
-  return Object.keys(person).map((key) => {
-    const typedKey = key as personKeys
-    return columnHelper.accessor(typedKey, { id: typedKey })
-  })
+function generateColumnDefs(people: Array<Person>) {
+  return generateTestColumnDefs<typeof features>(people)
 }
 
 describe('rowSelectionFeature', () => {
@@ -58,10 +52,7 @@ describe('rowSelectionFeature', () => {
       })
       const rowModel = table.getCoreRowModel()
 
-      const result = RowSelectionUtils.selectRowsFn(
-        rowModel,
-        table as Table_Internal<typeof features, Person>,
-      )
+      const result = RowSelectionUtils.selectRowsFn(rowModel, table)
 
       expect(result.rows.length).toBe(2)
       expect(result.flatRows.length).toBe(2)
@@ -89,10 +80,7 @@ describe('rowSelectionFeature', () => {
       })
       const rowModel = table.getCoreRowModel()
 
-      const result = RowSelectionUtils.selectRowsFn(
-        rowModel,
-        table as Table_Internal<typeof features, Person>,
-      )
+      const result = RowSelectionUtils.selectRowsFn(rowModel, table)
 
       expect(result.rows[0]?.subRows?.length).toBe(1)
       expect(result.flatRows.length).toBe(2)
@@ -119,10 +107,7 @@ describe('rowSelectionFeature', () => {
       })
       const rowModel = table.getCoreRowModel()
 
-      const result = RowSelectionUtils.selectRowsFn(
-        rowModel,
-        table as Table_Internal<typeof features, Person>,
-      )
+      const result = RowSelectionUtils.selectRowsFn(rowModel, table)
 
       expect(result.rows.length).toBe(0)
       expect(result.flatRows.length).toBe(1)
@@ -150,10 +135,7 @@ describe('rowSelectionFeature', () => {
       })
       const rowModel = table.getCoreRowModel()
 
-      const result = RowSelectionUtils.selectRowsFn(
-        rowModel,
-        table as Table_Internal<typeof features, Person>,
-      )
+      const result = RowSelectionUtils.selectRowsFn(rowModel, table)
 
       // Selected parents with subRows are cloned; the clone must keep the
       // shared row prototype so APIs like getValue() still work
@@ -161,6 +143,38 @@ describe('rowSelectionFeature', () => {
       expect(clonedParent).not.toBe(rowModel.rows[0])
       expect(typeof clonedParent.getValue).toBe('function')
       expect(clonedParent.getValue('id')).toBe(rowModel.rows[0]!.getValue('id'))
+    })
+
+    it('should not copy memoized row APIs from the original row to cloned parent rows', () => {
+      const data = generateTestData(3, 2)
+      const columns = generateColumnDefs(data)
+
+      const table = constructTable<typeof features, Person>({
+        features,
+        enableRowSelection: true,
+        renderFallbackValue: '',
+        data,
+        getSubRows: (originalRow: Person, _idx: number) => originalRow.subRows,
+        initialState: {
+          rowSelection: {
+            '0': true,
+            '0.0': true,
+          },
+        },
+        columns,
+      })
+      const rowModel = table.getCoreRowModel()
+      const originalParent = rowModel.rows[0]!
+
+      // Warm a per-row memo on the original. Clones must not copy this closure,
+      // because it is bound to originalParent.
+      originalParent.getAllCells()
+
+      const result = RowSelectionUtils.selectRowsFn(rowModel, table)
+
+      const clonedParent = result.rows[0]!
+      expect(clonedParent).not.toBe(originalParent)
+      expect(clonedParent.getAllCells()[0]!.row).toBe(clonedParent)
     })
 
     it('should return an empty list if no rows are selected', () => {
@@ -180,10 +194,7 @@ describe('rowSelectionFeature', () => {
       })
       const rowModel = table.getCoreRowModel()
 
-      const result = RowSelectionUtils.selectRowsFn(
-        rowModel,
-        table as Table_Internal<typeof features, Person>,
-      )
+      const result = RowSelectionUtils.selectRowsFn(rowModel, table)
 
       expect(result.rows.length).toBe(0)
       expect(result.flatRows.length).toBe(0)
@@ -542,6 +553,110 @@ describe('rowSelectionFeature', () => {
       expect(enableRowSelection.mock.calls.length).toBeGreaterThan(
         callsAfterFirst,
       )
+    })
+  })
+
+  describe('selected row models source the correct pipeline models', () => {
+    // Full pipeline: filtered -> grouped -> sorted, matching v8's sourcing of
+    // getFilteredSelectedRowModel (filtered) and getGroupedSelectedRowModel (sorted).
+    const pipelineFeatures = testFeatures({
+      aggregationFns,
+      columnFilteringFeature,
+      columnGroupingFeature,
+      filterFns,
+      filteredRowModel: createFilteredRowModel(),
+      groupedRowModel: createGroupedRowModel(),
+      rowSelectionFeature,
+      rowSortingFeature,
+      sortFns,
+      sortedRowModel: createSortedRowModel(),
+    })
+
+    // Static data: row ids default to index — '0' relationship, '1' complicated, '2' single
+    const pipelineColumns: Array<
+      ColumnDef<typeof pipelineFeatures, Person, any>
+    > = [
+      { accessorKey: 'firstName', id: 'firstName' },
+      { accessorKey: 'status', filterFn: 'equalsString', id: 'status' },
+    ]
+
+    function makePipelineTable(
+      initialState: Record<string, unknown>,
+      features = pipelineFeatures,
+    ) {
+      return constructTable<typeof pipelineFeatures, Person>({
+        features,
+        enableRowSelection: true,
+        renderFallbackValue: '',
+        data: getStaticTestData(),
+        columns: pipelineColumns,
+        initialState,
+      })
+    }
+
+    it('getFilteredSelectedRowModel excludes selected rows that are filtered out', () => {
+      const table = makePipelineTable({
+        columnFilters: [{ id: 'status', value: 'single' }],
+        rowSelection: { '0': true, '2': true },
+      })
+
+      // Row '0' (relationship) fails the filter; row '2' (single) passes
+      const filteredSelected = table.getFilteredSelectedRowModel()
+      expect(filteredSelected.rows.map((row) => row.id)).toEqual(['2'])
+      expect(filteredSelected.flatRows.length).toBe(1)
+      expect(filteredSelected.rowsById).toHaveProperty('2')
+      expect(filteredSelected.rowsById).not.toHaveProperty('0')
+
+      // Sanity: the plain selected model stays core-sourced and keeps both rows
+      expect(table.getSelectedRowModel().flatRows.length).toBe(2)
+    })
+
+    it('getGroupedSelectedRowModel returns a selected group row', () => {
+      const table = makePipelineTable({
+        grouping: ['status'],
+        rowSelection: { 'status:single': true },
+      })
+
+      const groupedSelected = table.getGroupedSelectedRowModel()
+      expect(groupedSelected.rows.length).toBe(1)
+      expect(groupedSelected.rows[0]!.id).toBe('status:single')
+      // The group's only leaf ('2') is unselected, so it is not collected
+      expect(groupedSelected.flatRows.map((row) => row.id)).toEqual([
+        'status:single',
+      ])
+    })
+
+    it('getGroupedSelectedRowModel collects a selected leaf under an unselected group', () => {
+      const table = makePipelineTable({
+        grouping: ['status'],
+        rowSelection: { '2': true },
+      })
+
+      const groupedSelected = table.getGroupedSelectedRowModel()
+      // No top-level group row is selected...
+      expect(groupedSelected.rows).toEqual([])
+      // ...but the selected leaf is still collected from the grouped tree
+      expect(groupedSelected.flatRows.map((row) => row.id)).toEqual(['2'])
+    })
+
+    it('getGroupedSelectedRowModel falls back through the row-model chain when sorting is not registered', () => {
+      const {
+        rowSortingFeature: _sorting,
+        sortFns: _sortFns,
+        sortedRowModel: _sorted,
+        ...rest
+      } = pipelineFeatures
+      const table = makePipelineTable(
+        {
+          grouping: ['status'],
+          rowSelection: { 'status:single': true },
+        },
+        rest as typeof pipelineFeatures,
+      )
+
+      const groupedSelected = table.getGroupedSelectedRowModel()
+      expect(groupedSelected.rows.length).toBe(1)
+      expect(groupedSelected.rows[0]!.id).toBe('status:single')
     })
   })
 })

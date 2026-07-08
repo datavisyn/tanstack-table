@@ -16,7 +16,12 @@ Use getters for reactive inputs such as `data` when passing Solid signals to `cr
 Here's how you set up your table to use column resizing features. Column resizing depends on column sizing, so add `columnSizingFeature` before `columnResizingFeature`. Adding the column resizing feature enables the related APIs.
 
 ```tsx
-import { createTable, tableFeatures, columnSizingFeature, columnResizingFeature } from '@tanstack/solid-table'
+import {
+  createTable,
+  tableFeatures,
+  columnSizingFeature,
+  columnResizingFeature,
+} from '@tanstack/solid-table'
 
 const features = tableFeatures({
   columnSizingFeature,
@@ -230,7 +235,7 @@ column.getIsResizing()
 The table instance exposes APIs for the transient resize state. Note that the current v9 API spelling is `table.setcolumnResizing` with a lowercase `c` in `column`; use that exact name.
 
 ```tsx
-table.setcolumnResizing(old => ({
+table.setcolumnResizing((old) => ({
   ...old,
   deltaOffset: 12,
 }))
@@ -241,11 +246,9 @@ table.resetHeaderSizeInfo(true)
 
 ### Advanced Column Resizing Performance
 
-Solid's fine-grained reactivity means you usually do not have to fight whole-component re-renders the way React users do. But in a large or complex table where every header and every data cell reads `column.getSize()` directly, an `"onChange"` resize drag still triggers a lot of recomputation per frame.
+Solid's fine-grained reactivity means you do not have to fight whole-component re-renders the way React users do. But if every header and data cell reads `column.getSize()` directly, an `"onChange"` drag still recomputes a lot per frame. The [performant column resizing example](../examples/column-resizing-performant) shows how to reduce a drag to a single reactive update.
 
-We have created a [performant column resizing example](../examples/column-resizing-performant) that demonstrates how to keep column resizing smooth with a complex table that has artificially slow cell renders. It is recommended that you just look at that example to see how it is done, but these are the basic things to keep in mind:
+1. **Compute all column widths in one `createMemo`.** Map each header and column id to a CSS variable value, return the whole style object, and bind it once on the `<table>` element (`<table style={tableStyle()}>`). `header.getSize()` reads the signal-backed `columnSizing` atom, so a drag re-runs only this one memo and its single style binding.
+2. **Reference the variables in cell styles** (`width: calc(var(--col-firstName-size) * 1px)`) so the browser applies new widths without the cell JSX re-executing.
 
-1. Don't read `column.getSize()` in every header and every data cell. Instead, calculate all column widths once in a single `createMemo` that maps header and column ids to CSS variable values.
-2. Use CSS variables (e.g. `width: calc(var(--col-firstName-size) * 1px)`) to communicate column widths to your table cells. During a drag, only the memo that produces the variables re-runs and the browser applies the new widths; the cell JSX itself never re-executes.
-
-If you follow these steps, you should see significant performance improvements while resizing columns.
+Because nothing in the table body reads resize state, no body memoization is needed; the resizer's own highlight is its own fine-grained binding and updates on its own.

@@ -74,7 +74,7 @@
         {
           "label": "vanilla",
           "children": [
-            { "label": "Vanilla JS (No Framework)", "to": "vanilla" }
+            { "label": "Quick Start", "to": "framework/vanilla/quick-start" }
           ]
         }
       ]
@@ -86,6 +86,7 @@
         { "label": "Column Definitions", "to": "guide/column-defs" },
         { "label": "Table Instance", "to": "guide/tables" },
         { "label": "Row Models", "to": "guide/row-models" },
+        { "label": "Worker Row Models (Experimental)", "to": "guide/worker-row-models" },
         { "label": "Rows", "to": "guide/rows" },
         { "label": "Cells", "to": "guide/cells" },
         { "label": "Header Groups", "to": "guide/header-groups" },
@@ -859,6 +860,7 @@
             { "to": "framework/alpine/examples/basic-app-table", "label": "Basic (createAppTable)" },
             { "to": "framework/alpine/examples/basic-external-state", "label": "Basic (External State)" },
             { "to": "framework/alpine/examples/basic-external-atoms", "label": "Basic (External Atoms)" },
+            { "to": "framework/alpine/examples/basic-dynamic-columns", "label": "Basic (Dynamic Columns)" },
             { "to": "framework/alpine/examples/column-groups", "label": "Header Groups" }
           ]
         },
@@ -869,6 +871,7 @@
             { "label": "Basic (createAppTable)", "to": "framework/angular/examples/basic-app-table" },
             { "label": "Basic (External State)", "to": "framework/angular/examples/basic-external-state" },
             { "label": "Basic (External Atoms)", "to": "framework/angular/examples/basic-external-atoms" },
+            { "label": "Basic (Dynamic Columns)", "to": "framework/angular/examples/basic-dynamic-columns" },
             { "label": "Header Groups", "to": "framework/angular/examples/column-groups" }
           ]
         },
@@ -880,6 +883,7 @@
             { "label": "Basic (External State)", "to": "framework/lit/examples/basic-external-state" },
             { "label": "Basic (External Atoms)", "to": "framework/lit/examples/basic-external-atoms" },
             { "label": "Basic (Subscribe)", "to": "framework/lit/examples/basic-subscribe" },
+            { "label": "Basic (Dynamic Columns)", "to": "framework/lit/examples/basic-dynamic-columns" },
             { "label": "Header Groups", "to": "framework/lit/examples/column-groups" }
           ]
         },
@@ -892,6 +896,7 @@
             { "label": "Basic (External State)", "to": "framework/react/examples/basic-external-state" },
             { "label": "Basic (External Atoms)", "to": "framework/react/examples/basic-external-atoms" },
             { "label": "Basic (Subscribe)", "to": "framework/react/examples/basic-subscribe" },
+            { "label": "Basic (Dynamic Columns)", "to": "framework/react/examples/basic-dynamic-columns" },
             { "label": "Header Groups", "to": "framework/react/examples/column-groups" }
           ]
         },
@@ -902,6 +907,7 @@
             { "label": "Basic (createAppTable)", "to": "framework/solid/examples/basic-app-table" },
             { "label": "Basic (External State)", "to": "framework/solid/examples/basic-external-state" },
             { "label": "Basic (External Atoms)", "to": "framework/solid/examples/basic-external-atoms" },
+            { "label": "Basic (Dynamic Columns)", "to": "framework/solid/examples/basic-dynamic-columns" },
             { "label": "Header Groups", "to": "framework/solid/examples/column-groups" }
           ]
         },
@@ -913,6 +919,7 @@
             { "label": "Basic (Snippets)", "to": "framework/svelte/examples/basic-snippets" },
             { "label": "Basic (External State)", "to": "framework/svelte/examples/basic-external-state" },
             { "label": "Basic (External Atoms)", "to": "framework/svelte/examples/basic-external-atoms" },
+            { "label": "Basic (Dynamic Columns)", "to": "framework/svelte/examples/basic-dynamic-columns" },
             { "label": "Header Groups", "to": "framework/svelte/examples/column-groups" }
           ]
         },
@@ -923,6 +930,7 @@
             { "label": "Basic (useAppTable)", "to": "framework/vue/examples/basic-use-app-table" },
             { "label": "Basic (External State)", "to": "framework/vue/examples/basic-external-state" },
             { "label": "Basic (External Atoms)", "to": "framework/vue/examples/basic-external-atoms" },
+            { "label": "Basic (Dynamic Columns)", "to": "framework/vue/examples/basic-dynamic-columns" },
             { "label": "Header Groups", "to": "framework/vue/examples/column-groups" }
           ]
         },
@@ -934,6 +942,7 @@
             { "label": "Basic (External State)", "to": "framework/preact/examples/basic-external-state" },
             { "label": "Basic (External Atoms)", "to": "framework/preact/examples/basic-external-atoms" },
             { "label": "Basic (Subscribe)", "to": "framework/preact/examples/basic-subscribe" },
+            { "label": "Basic (Dynamic Columns)", "to": "framework/preact/examples/basic-dynamic-columns" },
             { "label": "Header Groups", "to": "framework/preact/examples/column-groups" }
           ]
         },
@@ -1193,6 +1202,7 @@
           "children": [
             { "label": "Composable Tables (createTableHook)", "to": "framework/react/examples/composable-tables" },
             { "label": "Custom Plugin", "to": "framework/react/examples/custom-plugin" },
+            { "label": "Experimental Web Workers Plugin", "to": "framework/react/examples/web-worker-row-models" },
             { "label": "With TanStack Virtual - Columns", "to": "framework/react/examples/virtualized-columns" },
             { "label": "With TanStack Virtual - Columns (Exp)", "to": "framework/react/examples/virtualized-columns-experimental" },
             { "label": "With TanStack Virtual - Rows", "to": "framework/react/examples/virtualized-rows" },
@@ -1254,18 +1264,20 @@
         {
           "label": "react",
           "children": [
-            { "label": "Basic - Shadcn (Radix)", "to": "framework/react/examples/lib-shadcn-radix" },
             { "label": "Basic - Shadcn (Base UI)", "to": "framework/react/examples/lib-shadcn-base" },
+            { "label": "Basic - Shadcn (Radix)", "to": "framework/react/examples/lib-shadcn-radix" },
             { "label": "Basic - React Aria", "to": "framework/react/examples/lib-react-aria" },
             { "label": "Basic - Hero UI", "to": "framework/react/examples/lib-hero-ui" },
             { "label": "Basic - Material UI", "to": "framework/react/examples/lib-material-ui" },
             { "label": "Basic - Mantine", "to": "framework/react/examples/lib-mantine" },
-            { "label": "Kitchen Sink - Shadcn (Radix)", "to": "framework/react/examples/kitchen-sink-shadcn-radix" },
+            { "label": "Basic - Chakra UI", "to": "framework/react/examples/lib-chakra-ui" },
             { "label": "Kitchen Sink - Shadcn (Base UI)", "to": "framework/react/examples/kitchen-sink-shadcn-base" },
+            { "label": "Kitchen Sink - Shadcn (Radix)", "to": "framework/react/examples/kitchen-sink-shadcn-radix" },
             { "label": "Kitchen Sink - React Aria", "to": "framework/react/examples/kitchen-sink-react-aria" },
             { "label": "Kitchen Sink - Hero UI", "to": "framework/react/examples/kitchen-sink-hero-ui" },
             { "label": "Kitchen Sink - Material UI", "to": "framework/react/examples/kitchen-sink-material-ui" },
             { "label": "Kitchen Sink - Mantine", "to": "framework/react/examples/kitchen-sink-mantine" },
+            { "label": "Kitchen Sink - Chakra UI", "to": "framework/react/examples/kitchen-sink-chakra-ui" },
             { "label": "Material React Table", "to": "framework/react/examples/material-react-table" },
             { "label": "Mantine React Table", "to": "framework/react/examples/mantine-react-table" }
           ]

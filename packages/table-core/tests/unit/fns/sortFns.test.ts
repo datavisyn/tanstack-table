@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  reSplitAlphaNumeric,
   sortFn_alphanumeric,
   sortFn_alphanumericCaseSensitive,
   sortFn_basic,
@@ -259,5 +260,42 @@ describe('sortFn_datetime', () => {
 
   it('compares numeric timestamps', () => {
     expect(cmp(sortFn_datetime, 1000, 2000)).toBe(-1)
+  })
+
+  it('compares dates and numeric timestamps by time', () => {
+    const date = new Date(2000)
+
+    expect(cmp(sortFn_datetime, date, 1000)).toBe(1)
+    expect(cmp(sortFn_datetime, 1000, date)).toBe(-1)
+  })
+
+  it('preserves string fallback comparisons', () => {
+    expect(cmp(sortFn_datetime, '2026-01-01', '2026-02-01')).toBe(-1)
+  })
+
+  it('keeps invalid dates equal-like under relational comparison', () => {
+    expect(cmp(sortFn_datetime, new Date(Number.NaN), 1000)).toBe(0)
+  })
+})
+
+describe('reSplitAlphaNumeric', () => {
+  it('should keep plain text as a single segment', () => {
+    expect('apple'.split(reSplitAlphaNumeric)).toEqual(['apple'])
+  })
+
+  it('should capture numeric runs as their own segments', () => {
+    expect('item10'.split(reSplitAlphaNumeric)).toEqual(['item', '10', ''])
+    expect('a1b22c'.split(reSplitAlphaNumeric)).toEqual([
+      'a',
+      '1',
+      'b',
+      '22',
+      'c',
+    ])
+  })
+
+  it('should handle leading digits and empty strings', () => {
+    expect('10abc'.split(reSplitAlphaNumeric)).toEqual(['', '10', 'abc'])
+    expect(''.split(reSplitAlphaNumeric)).toEqual([''])
   })
 })

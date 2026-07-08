@@ -1,6 +1,7 @@
 import {
   callMemoOrStaticFn,
   cloneState,
+  copyInstancePropertiesWithoutMemos,
   hasOwn,
   makeObjectMap,
 } from '../../utils'
@@ -247,7 +248,7 @@ export function table_getFilteredSelectedRowModel<
   TFeatures extends TableFeatures,
   TData extends RowData,
 >(table: Table_Internal<TFeatures, TData>) {
-  const rowModel = table.getCoreRowModel()
+  const rowModel = table.getFilteredRowModel()
 
   if (
     !callMemoOrStaticFn(
@@ -281,7 +282,9 @@ export function table_getGroupedSelectedRowModel<
   TFeatures extends TableFeatures,
   TData extends RowData,
 >(table: Table_Internal<TFeatures, TData>) {
-  const rowModel = table.getCoreRowModel()
+  // The sorted model falls back grouped -> filtered -> core when those
+  // features are not registered, so selected group rows are always visible.
+  const rowModel = table.getSortedRowModel()
 
   if (
     !callMemoOrStaticFn(
@@ -736,7 +739,7 @@ export function selectRowsFn<
         if (isSelected) {
           // Preserve prototype chain so methods like getValue() remain accessible
           const cloned = Object.create(Object.getPrototypeOf(row))
-          Object.assign(cloned, row)
+          copyInstancePropertiesWithoutMemos(cloned, row)
           cloned.subRows = newSubRows
           result.push(cloned)
         }

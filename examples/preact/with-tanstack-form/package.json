@@ -8,15 +8,16 @@
     "serve": "vite preview",
     "start": "vite",
     "lint": "eslint ./src",
-    "test:types": "tsc"
+    "test:types": "tsc",
+    "test:e2e": "PLAYWRIGHT_TEST_DIR=$PWD/tests/e2e playwright test --config ../../../playwright.config.ts"
   },
   "dependencies": {
     "@faker-js/faker": "^10.5.0",
     "@tanstack/preact-devtools": "^0.10.5",
     "@tanstack/preact-form": "^1.30.0",
     "@tanstack/preact-pacer": "^0.22.1",
-    "@tanstack/preact-table": "^9.0.0-beta.26",
-    "@tanstack/preact-table-devtools": "^9.0.0-beta.26",
+    "@tanstack/preact-table": "^9.0.0-beta.36",
+    "@tanstack/preact-table-devtools": "^9.0.0-beta.36",
     "@tanstack/react-form-devtools": "^0.2.29",
     "preact": "^10.29.2",
     "zod": "^4.4.3"

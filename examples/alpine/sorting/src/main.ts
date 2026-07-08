@@ -44,6 +44,11 @@ const columns: Array<ColumnDef<typeof features, Person>> = [
     sortDescFirst: false, // first sort order will be ascending (nullable values can mess up auto detection of sort order)
   },
   {
+    accessorKey: 'email',
+    header: 'Email',
+    sortFn: 'alphanumeric',
+  },
+  {
     accessorKey: 'age',
     header: () => 'Age',
     // this column will sort in descending order by default since it is a number column
@@ -98,7 +103,7 @@ Alpine.data('table', () => {
       local.data = makeData(1_000)
     },
     stressTest() {
-      local.data = makeData(100_000)
+      local.data = makeData(1_000_000)
     },
   }
 })

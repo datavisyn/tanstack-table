@@ -7,7 +7,8 @@
     "build": "vite build",
     "serve": "vite preview",
     "lint": "eslint ./src",
-    "test:types": "tsc --noEmit"
+    "test:types": "tsc --noEmit",
+    "test:e2e": "PLAYWRIGHT_TEST_DIR=$PWD/tests/e2e playwright test --config ../../../playwright.config.ts"
   },
   "license": "MIT",
   "devDependencies": {
@@ -17,7 +18,7 @@
     "vite-plugin-solid": "^2.11.12"
   },
   "dependencies": {
-    "@tanstack/solid-table": "^9.0.0-beta.26",
+    "@tanstack/solid-table": "^9.0.0-beta.36",
     "solid-js": "^1.9.13"
   }
 }

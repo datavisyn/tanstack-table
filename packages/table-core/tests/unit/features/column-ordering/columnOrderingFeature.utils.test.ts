@@ -1,16 +1,50 @@
 import { describe, expect, it, vi } from 'vitest'
-import { generateTestTableWithData } from '../../../helpers/generateTestTable'
+import {
+  columnGroupingFeature,
+  columnOrderingFeature,
+  columnPinningFeature,
+  columnVisibilityFeature,
+  constructTable,
+} from '../../../../src'
 import {
   column_getIndex,
   column_getIsFirstColumn,
   column_getIsLastColumn,
   getDefaultColumnOrderState,
   orderColumns,
+  table_getColumnIndexes,
   table_getOrderColumnsFn,
+  table_getPinnedVisibleLeafColumns,
   table_resetColumnOrder,
   table_setColumnOrder,
 } from '../../../../src/static-functions'
-import type { TableFeatures } from '../../../../src'
+import { testFeatures } from '../../../fixtures/features'
+import { generateTestColumnDefs } from '../../../fixtures/data/generateTestColumnDefs'
+import { generateTestData } from '../../../fixtures/data/generateTestData'
+import type { Table, TableOptions } from '../../../../src'
+import type { Person } from '../../../fixtures/data/types'
+
+const features = testFeatures({
+  columnGroupingFeature,
+  columnOrderingFeature,
+  columnPinningFeature,
+  columnVisibilityFeature,
+})
+
+function makeTable(
+  rowCount: number,
+  options?: Partial<
+    Omit<TableOptions<typeof features, Person>, 'data' | 'columns' | 'features'>
+  >,
+): Table<typeof features, Person> {
+  const data = generateTestData(rowCount)
+  return constructTable({
+    features,
+    data,
+    columns: generateTestColumnDefs<typeof features>(data),
+    ...options,
+  })
+}
 
 describe('getDefaultColumnOrderState', () => {
   it('should return an empty array', () => {
@@ -18,36 +52,103 @@ describe('getDefaultColumnOrderState', () => {
   })
 })
 
+describe('table_getColumnIndexes', () => {
+  it('should map each visible column id to its index within each region', () => {
+    const table = makeTable(3, {
+      initialState: {
+        columnPinning: {
+          left: ['lastName'],
+          right: ['age'],
+        },
+        columnVisibility: {
+          firstName: false,
+        },
+      },
+    })
+
+    const indexes = table_getColumnIndexes(table)
+
+    for (const [key, position] of [
+      ['all', undefined],
+      ['left', 'left'],
+      ['right', 'right'],
+      ['center', 'center'],
+    ] as const) {
+      const columns = table_getPinnedVisibleLeafColumns(table, position)
+      expect(indexes[key]).toEqual(
+        Object.fromEntries(columns.map((col, i) => [col.id, i])),
+      )
+    }
+  })
+})
+
 describe('column_getIndex', () => {
   it('should return correct index for a column', () => {
-    const table = generateTestTableWithData<TableFeatures>(3)
+    const table = makeTable(3)
     const column = table.getAllLeafColumns()[1]!
 
     expect(column_getIndex(column)).toBe(1)
   })
 
-  it('should return -1 for non-existent column', () => {
-    const table = generateTestTableWithData<TableFeatures>(3)
-    const column = {
-      ...table.getAllLeafColumns()[0],
-      id: 'non-existent',
-      table,
-    }
+  it('should return -1 for a column that is not visible', () => {
+    const table = makeTable(3, {
+      initialState: {
+        columnVisibility: {
+          firstName: false,
+        },
+      },
+    })
+    const column = table.getColumn('firstName')!
 
-    expect(column_getIndex(column as any)).toBe(-1)
+    expect(column_getIndex(column)).toBe(-1)
+  })
+
+  it('should return the index within the requested pinning region', () => {
+    const table = makeTable(3, {
+      initialState: {
+        columnPinning: {
+          left: ['lastName', 'firstName'],
+          right: ['age'],
+        },
+      },
+    })
+    const columns = table.getAllLeafColumns()
+    const firstName = columns.find((col) => col.id === 'firstName')!
+    const age = columns.find((col) => col.id === 'age')!
+    const visits = columns.find((col) => col.id === 'visits')!
+
+    expect(column_getIndex(firstName, 'left')).toBe(1)
+    expect(column_getIndex(age, 'right')).toBe(0)
+    expect(column_getIndex(visits, 'center')).toBeGreaterThanOrEqual(0)
+    expect(column_getIndex(firstName, 'right')).toBe(-1)
+    expect(column_getIndex(firstName, 'center')).toBe(-1)
+  })
+
+  it('should recompute the instance API after column order changes', () => {
+    const table = makeTable(1)
+
+    const lastName = table.getColumn('lastName')!
+
+    expect(lastName.getIndex()).toBe(2)
+    expect(table.getColumnIndexes().all['lastName']).toBe(2)
+
+    table.setColumnOrder(['lastName', 'firstName'])
+
+    expect(lastName.getIndex()).toBe(0)
+    expect(table.getColumnIndexes().all['lastName']).toBe(0)
   })
 })
 
 describe('column_getIsFirstColumn', () => {
   it('should return true for first column', () => {
-    const table = generateTestTableWithData<TableFeatures>(3)
+    const table = makeTable(3)
     const firstColumn = table.getAllLeafColumns()[0]!
 
     expect(column_getIsFirstColumn(firstColumn)).toBe(true)
   })
 
   it('should return false for non-first column', () => {
-    const table = generateTestTableWithData<TableFeatures>(3)
+    const table = makeTable(3)
     const secondColumn = table.getAllLeafColumns()[1]!
 
     expect(column_getIsFirstColumn(secondColumn)).toBe(false)
@@ -56,7 +157,7 @@ describe('column_getIsFirstColumn', () => {
 
 describe('column_getIsLastColumn', () => {
   it('should return true for last column', () => {
-    const table = generateTestTableWithData<TableFeatures>(3)
+    const table = makeTable(3)
     const columns = table.getAllLeafColumns()
     const lastColumn = columns[columns.length - 1]!
 
@@ -64,7 +165,7 @@ describe('column_getIsLastColumn', () => {
   })
 
   it('should return false for non-last column', () => {
-    const table = generateTestTableWithData<TableFeatures>(3)
+    const table = makeTable(3)
     const firstColumn = table.getAllLeafColumns()[0]!
 
     expect(column_getIsLastColumn(firstColumn)).toBe(false)
@@ -74,7 +175,7 @@ describe('column_getIsLastColumn', () => {
 describe('table_setColumnOrder', () => {
   it('should call onColumnOrderChange with updater', () => {
     const onColumnOrderChange = vi.fn()
-    const table = generateTestTableWithData<TableFeatures>(3, {
+    const table = makeTable(3, {
       onColumnOrderChange,
     })
     const newOrder = ['col1', 'col2']
@@ -88,7 +189,7 @@ describe('table_setColumnOrder', () => {
 describe('table_resetColumnOrder', () => {
   it('should reset to empty array when defaultState is true', () => {
     const onColumnOrderChange = vi.fn()
-    const table = generateTestTableWithData<TableFeatures>(3, {
+    const table = makeTable(3, {
       onColumnOrderChange,
     })
 
@@ -100,7 +201,7 @@ describe('table_resetColumnOrder', () => {
   it('should reset to initialState when defaultState is false', () => {
     const initialColumnOrder = ['col1', 'col2']
     const onColumnOrderChange = vi.fn()
-    const table = generateTestTableWithData<TableFeatures>(3, {
+    const table = makeTable(3, {
       onColumnOrderChange,
       initialState: { columnOrder: initialColumnOrder },
     })
@@ -113,7 +214,7 @@ describe('table_resetColumnOrder', () => {
 
 describe('table_getOrderColumnsFn', () => {
   it('should return original columns when no column order is specified', () => {
-    const table = generateTestTableWithData<TableFeatures>(3)
+    const table = makeTable(3)
     const columns = table.getAllLeafColumns()
     const orderFn = table_getOrderColumnsFn(table)
 
@@ -121,7 +222,7 @@ describe('table_getOrderColumnsFn', () => {
   })
 
   it('should reorder columns according to columnOrder', () => {
-    const table = generateTestTableWithData<TableFeatures>(3, {
+    const table = makeTable(3, {
       initialState: {
         columnOrder: ['lastName', 'firstName'],
       },
@@ -135,33 +236,33 @@ describe('table_getOrderColumnsFn', () => {
   })
 
   it('should append leftover columns in original order when columnOrder is partial', () => {
-    const table = generateTestTableWithData<TableFeatures>(3, {
+    const table = makeTable(3, {
       initialState: {
         columnOrder: ['age', 'firstName'],
       },
     })
     const columns = table.getAllLeafColumns()
-    const originalIds = columns.map((c: any) => c.id)
+    const originalIds = columns.map((c) => c.id)
     const orderFn = table_getOrderColumnsFn(table)
-    const orderedIds = orderFn(columns).map((c: any) => c.id)
+    const orderedIds = orderFn(columns).map((c) => c.id)
 
     expect(orderedIds.slice(0, 2)).toEqual(['age', 'firstName'])
     const leftoverIds = originalIds.filter(
-      (id: string) => id !== 'age' && id !== 'firstName',
+      (id) => id !== 'age' && id !== 'firstName',
     )
     expect(orderedIds.slice(2)).toEqual(leftoverIds)
   })
 
   it('should skip unknown ids in columnOrder', () => {
-    const table = generateTestTableWithData<TableFeatures>(3, {
+    const table = makeTable(3, {
       initialState: {
         columnOrder: ['unknown1', 'lastName', 'unknown2', 'firstName'],
       },
     })
     const columns = table.getAllLeafColumns()
-    const originalIds = columns.map((c: any) => c.id)
+    const originalIds = columns.map((c) => c.id)
     const orderFn = table_getOrderColumnsFn(table)
-    const orderedIds = orderFn(columns).map((c: any) => c.id)
+    const orderedIds = orderFn(columns).map((c) => c.id)
 
     expect(orderedIds.slice(0, 2)).toEqual(['lastName', 'firstName'])
     expect(orderedIds).toHaveLength(originalIds.length)
@@ -169,15 +270,15 @@ describe('table_getOrderColumnsFn', () => {
   })
 
   it('should not duplicate columns when columnOrder contains duplicates', () => {
-    const table = generateTestTableWithData<TableFeatures>(3, {
+    const table = makeTable(3, {
       initialState: {
         columnOrder: ['lastName', 'lastName', 'firstName'],
       },
     })
     const columns = table.getAllLeafColumns()
-    const originalIds = columns.map((c: any) => c.id)
+    const originalIds = columns.map((c) => c.id)
     const orderFn = table_getOrderColumnsFn(table)
-    const orderedIds = orderFn(columns).map((c: any) => c.id)
+    const orderedIds = orderFn(columns).map((c) => c.id)
 
     expect(orderedIds).toHaveLength(originalIds.length)
     expect(new Set(orderedIds)).toEqual(new Set(originalIds))
@@ -188,14 +289,14 @@ describe('table_getOrderColumnsFn', () => {
 
 describe('orderColumns', () => {
   it('should return original columns when no grouping is present', () => {
-    const table = generateTestTableWithData<TableFeatures>(3)
+    const table = makeTable(3)
     const columns = table.getAllLeafColumns()
 
     expect(orderColumns(table, columns)).toEqual(columns)
   })
 
   it('should remove grouped columns when groupedColumnMode is "remove"', () => {
-    const table = generateTestTableWithData<TableFeatures>(3, {
+    const table = makeTable(3, {
       initialState: {
         grouping: ['firstName'],
       },
@@ -208,7 +309,7 @@ describe('orderColumns', () => {
   })
 
   it('should move grouped columns to start when groupedColumnMode is "reorder"', () => {
-    const table = generateTestTableWithData<TableFeatures>(3, {
+    const table = makeTable(3, {
       initialState: {
         grouping: ['lastName'],
       },
@@ -221,19 +322,19 @@ describe('orderColumns', () => {
   })
 
   it('should preserve grouping order and original order for non-grouping when reordering', () => {
-    const table = generateTestTableWithData<TableFeatures>(3, {
+    const table = makeTable(3, {
       initialState: {
         grouping: ['age', 'firstName'],
       },
       groupedColumnMode: 'reorder',
     })
     const columns = table.getAllLeafColumns()
-    const originalIds = columns.map((c: any) => c.id)
-    const orderedIds = orderColumns(table, columns).map((c: any) => c.id)
+    const originalIds = columns.map((c) => c.id)
+    const orderedIds = orderColumns(table, columns).map((c) => c.id)
 
     expect(orderedIds.slice(0, 2)).toEqual(['age', 'firstName'])
     const leftoverIds = originalIds.filter(
-      (id: string) => id !== 'age' && id !== 'firstName',
+      (id) => id !== 'age' && id !== 'firstName',
     )
     expect(orderedIds.slice(2)).toEqual(leftoverIds)
   })

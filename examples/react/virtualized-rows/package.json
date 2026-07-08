@@ -7,11 +7,12 @@
     "serve": "vite preview",
     "start": "vite",
     "lint": "eslint ./src",
+    "test:e2e": "PLAYWRIGHT_TEST_DIR=$PWD/tests/e2e playwright test --config ../../../playwright.config.ts",
     "test:types": "tsc"
   },
   "dependencies": {
     "@faker-js/faker": "^10.5.0",
-    "@tanstack/react-table": "^9.0.0-beta.26",
+    "@tanstack/react-table": "^9.0.0-beta.36",
     "@tanstack/react-virtual": "^3.14.3",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"

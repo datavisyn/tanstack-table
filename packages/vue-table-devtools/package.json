@@ -1,6 +1,6 @@
 {
   "name": "@tanstack/vue-table-devtools",
-  "version": "9.0.0-beta.26",
+  "version": "9.0.0-beta.36",
   "description": "Vue devtools for TanStack Table.",
   "author": "Tanner Linsley",
   "license": "MIT",
@@ -49,7 +49,7 @@
   },
   "sideEffects": false,
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "files": [
     "dist/",

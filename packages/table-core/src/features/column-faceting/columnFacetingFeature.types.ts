@@ -1,4 +1,3 @@
-import type { Table } from '../../types/Table'
 import type { RowData } from '../../types/type-utils'
 import type { TableFeatures } from '../../types/TableFeatures'
 import type { RowModel } from '../../core/row-models/coreRowModelsFeature.types'
@@ -52,9 +51,12 @@ export interface CachedRowModel_Faceted<
   in out TFeatures extends TableFeatures,
   in out TData extends RowData,
 > {
-  facetedRowModel?: (columnId: string) => () => RowModel<TFeatures, TData>
-  facetedMinMaxValues?: (columnId: string) => [number, number]
-  facetedUniqueValues?: (columnId: string) => Map<any, number>
+  facetedRowModels?: Record<string, () => RowModel<TFeatures, TData>>
+  facetedMinMaxValues?: Record<string, () => undefined | [number, number]>
+  facetedUniqueValues?: Record<string, () => Map<any, number>>
+  globalFacetedRowModel?: () => RowModel<TFeatures, TData>
+  globalFacetedMinMaxValues?: () => undefined | [number, number]
+  globalFacetedUniqueValues?: () => Map<any, number>
 }
 
 export interface Table_ColumnFaceting<
