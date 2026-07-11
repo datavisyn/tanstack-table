@@ -10,7 +10,8 @@ import { getCommonTooltipProps } from '../../utils/style.utils'
 import { parseFromValuesOrFunc } from '../../utils/utils'
 import { MRT_ColumnPinningButtons } from '../buttons/MRT_ColumnPinningButtons'
 import { MRT_GrabHandleButton } from '../buttons/MRT_GrabHandleButton'
-import type { MRT_Column, MRT_RowData, MRT_TableInstance } from '../../types'
+import { useMRTContext } from '../../hooks/mrtTableHook'
+import type { MRT_Column, MRT_RowData } from '../../types'
 import type { MenuItemProps } from '@mui/material/MenuItem'
 import type { Dispatch, DragEvent, SetStateAction } from 'react'
 
@@ -22,7 +23,6 @@ export interface MRT_ShowHideColumnsMenuItemsProps<
   hoveredColumn: MRT_Column<TData> | null
   isNestedColumns: boolean
   setHoveredColumn: Dispatch<SetStateAction<MRT_Column<TData> | null>>
-  table: MRT_TableInstance<TData>
 }
 
 export const MRT_ShowHideColumnsMenuItems = <TData extends MRT_RowData>({
@@ -31,9 +31,9 @@ export const MRT_ShowHideColumnsMenuItems = <TData extends MRT_RowData>({
   hoveredColumn,
   isNestedColumns,
   setHoveredColumn,
-  table,
   ...rest
 }: MRT_ShowHideColumnsMenuItemsProps<TData>) => {
+  const table = useMRTContext<TData>()
   const {
     state,
     options: {
@@ -81,9 +81,9 @@ export const MRT_ShowHideColumnsMenuItems = <TData extends MRT_RowData>({
     if (hoveredColumn) {
       const reorderedColumns = reorderColumn(column, hoveredColumn, columnOrder)
       setColumnOrder(reorderedColumns)
-      setColumnPinning(({ left = [], right = [] }) => ({
-        left: reorderedColumns.filter((header) => left.includes(header)),
-        right: reorderedColumns.filter((header) => right.includes(header)),
+      setColumnPinning(({ start = [], end = [] }) => ({
+        start: reorderedColumns.filter((header) => start.includes(header)),
+        end: reorderedColumns.filter((header) => end.includes(header)),
       }))
     }
   }
@@ -135,14 +135,13 @@ export const MRT_ShowHideColumnsMenuItems = <TData extends MRT_RowData>({
               <MRT_GrabHandleButton
                 onDragEnd={handleDragEnd}
                 onDragStart={handleDragStart}
-                table={table}
               />
             ) : (
               <Box sx={{ width: '28px' }} />
             ))}
           {enableColumnPinning &&
             (column.getCanPin() ? (
-              <MRT_ColumnPinningButtons column={column} table={table} />
+              <MRT_ColumnPinningButtons column={column} />
             ) : (
               <Box sx={{ width: '70px' }} />
             ))}
@@ -184,7 +183,6 @@ export const MRT_ShowHideColumnsMenuItems = <TData extends MRT_RowData>({
           isNestedColumns={isNestedColumns}
           key={`${i}-${c.id}`}
           setHoveredColumn={setHoveredColumn}
-          table={table}
         />
       ))}
     </>

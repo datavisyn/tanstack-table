@@ -1,24 +1,24 @@
 import { reorderColumn } from '../../utils/column.utils'
 import { parseFromValuesOrFunc } from '../../utils/utils'
 import { MRT_GrabHandleButton } from '../buttons/MRT_GrabHandleButton'
+import { useMRTContext } from '../../hooks/mrtTableHook'
 import type { DragEvent, RefObject } from 'react'
 import type { IconButtonProps } from '@mui/material/IconButton'
-import type { MRT_Column, MRT_RowData, MRT_TableInstance } from '../../types'
+import type { MRT_Column, MRT_RowData } from '../../types'
 
 export interface MRT_TableHeadCellGrabHandleProps<
   TData extends MRT_RowData,
 > extends IconButtonProps {
   column: MRT_Column<TData>
-  table: MRT_TableInstance<TData>
   tableHeadCellRef: RefObject<HTMLTableCellElement | null>
 }
 
 export const MRT_TableHeadCellGrabHandle = <TData extends MRT_RowData>({
   column,
-  table,
   tableHeadCellRef,
   ...rest
 }: MRT_TableHeadCellGrabHandleProps<TData>) => {
+  const table = useMRTContext<TData>()
   const {
     state,
     options: { enableColumnOrdering, muiColumnDragHandleProps },
@@ -68,9 +68,9 @@ export const MRT_TableHeadCellGrabHandle = <TData extends MRT_RowData>({
         columnOrder,
       )
       setColumnOrder(reorderedColumns)
-      setColumnPinning(({ left = [], right = [] }) => ({
-        left: reorderedColumns.filter((header) => left.includes(header)),
-        right: reorderedColumns.filter((header) => right.includes(header)),
+      setColumnPinning(({ start = [], end = [] }) => ({
+        start: reorderedColumns.filter((header) => start.includes(header)),
+        end: reorderedColumns.filter((header) => end.includes(header)),
       }))
     }
     setDraggingColumn(null)
@@ -82,7 +82,6 @@ export const MRT_TableHeadCellGrabHandle = <TData extends MRT_RowData>({
       {...iconButtonProps}
       onDragEnd={handleDragEnd}
       onDragStart={handleDragStart}
-      table={table}
     />
   )
 }

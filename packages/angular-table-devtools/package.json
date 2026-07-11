@@ -1,6 +1,6 @@
 {
   "name": "@tanstack/angular-table-devtools",
-  "version": "9.0.0-beta.36",
+  "version": "9.0.0-beta.41",
   "description": "Angular devtools for TanStack Table.",
   "license": "MIT",
   "repository": {
@@ -17,7 +17,8 @@
     "angular",
     "tanstack",
     "table",
-    "devtools"
+    "devtools",
+    "tanstack-intent"
   ],
   "scripts": {
     "clean": "rimraf ./build && rimraf ./dist",
@@ -41,7 +42,8 @@
   },
   "files": [
     "dist",
-    "src"
+    "src",
+    "skills"
   ],
   "dependencies": {
     "@tanstack/devtools-utils": "^0.6.0",

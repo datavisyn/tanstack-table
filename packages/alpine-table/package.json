@@ -1,6 +1,6 @@
 {
   "name": "@tanstack/alpine-table",
-  "version": "9.0.0-beta.36",
+  "version": "9.0.0-beta.41",
   "description": "Headless UI for building powerful tables & datagrids for Alpine.",
   "author": "Tanner Linsley",
   "license": "MIT",
@@ -18,7 +18,8 @@
     "alpine",
     "table",
     "alpine-table",
-    "datagrid"
+    "datagrid",
+    "tanstack-intent"
   ],
   "type": "module",
   "types": "./dist/index.d.cts",
@@ -49,7 +50,8 @@
   },
   "files": [
     "dist",
-    "src"
+    "src",
+    "skills"
   ],
   "scripts": {
     "clean": "rimraf ./build && rimraf ./dist",
