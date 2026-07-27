@@ -6,12 +6,15 @@ import {
   createPaginatedRowModel,
   createSortedRowModel,
   createTable,
-  filterFns,
+  filterFn_between,
+  filterFn_inNumberRange,
+  filterFn_includesString,
   rowExpandingFeature,
   rowPaginationFeature,
   rowSelectionFeature,
   rowSortingFeature,
-  sortFns,
+  sortFn_alphanumeric,
+  sortFn_text,
   tableFeatures,
 } from '@tanstack/solid-table'
 import { For, Show, createEffect, createSignal } from 'solid-js'
@@ -29,8 +32,15 @@ const features = tableFeatures({
   filteredRowModel: createFilteredRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
   sortedRowModel: createSortedRowModel(),
-  filterFns,
-  sortFns,
+  filterFns: {
+    between: filterFn_between,
+    includesString: filterFn_includesString,
+    inNumberRange: filterFn_inNumberRange,
+  },
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    text: sortFn_text,
+  },
 })
 
 const columnHelper = createColumnHelper<typeof features, Person>()
@@ -41,6 +51,11 @@ function App() {
   const stressTest = () => setData(makeData(10_000, 5, 3))
 
   const columns = columnHelper.columns([
+    columnHelper.display({
+      id: 'rowNumber',
+      header: '#',
+      cell: ({ row }) => row.getDisplayIndex() + 1,
+    }),
     columnHelper.accessor('firstName', {
       header: ({ table }) => (
         <>
@@ -64,7 +79,9 @@ function App() {
                 (row.getCanSelectSubRows() && row.getIsAllSubRowsSelected())
               }
               indeterminate={row.getIsSomeSelected()}
-              onChange={row.getToggleSelectedHandler()}
+              onClick={row.getToggleSelectedHandler({
+                // selectChildren: false
+              })}
             />{' '}
             {row.getCanExpand() ? (
               <button
@@ -114,6 +131,19 @@ function App() {
       return data()
     },
     getSubRows: (row) => row.subRows,
+    // initialState: { expanded: { '0': true } }, // expand rows on first render
+    // atoms: { expanded: expandedAtom }, // preferred: own expanded state with an external atom
+    // state: { expanded }, // classic controlled state; pair with onExpandedChange
+    // onExpandedChange: setExpanded,
+    // enableExpanding: false, // disable expanding for every row; default true
+    // getRowCanExpand: row => row.original.subRows?.length > 0, // override which rows can expand
+    // getIsRowExpanded: row => row.id === '0', // override whether a row is expanded
+    // manualExpanding: true, // pass data that is already expanded, for example from a server
+    // paginateExpandedRows: false, // keep expanded children on their parent page; default true
+    // autoResetExpanded: false, // keep expanded rows after page-altering changes; default true
+    // autoResetAll: false, // turn off every feature's automatic reset, including expansion
+    // filterFromLeafRows: true, // with filtering, keep parents whose descendants match
+    // maxLeafRowFilterDepth: 0, // with filtering, only filter root rows
     debugTable: true,
   })
 
@@ -291,6 +321,7 @@ function IndeterminateCheckbox(props: {
   checked?: boolean
   className?: string
   onChange?: (event: Event) => void
+  onClick?: (event: MouseEvent) => void
 }) {
   let ref: HTMLInputElement | undefined
 
@@ -307,6 +338,7 @@ function IndeterminateCheckbox(props: {
       class={`${props.className ?? ''} sortable-header`}
       checked={props.checked}
       onChange={props.onChange}
+      onClick={props.onClick}
     />
   )
 }

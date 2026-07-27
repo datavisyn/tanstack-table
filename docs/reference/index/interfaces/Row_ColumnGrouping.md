@@ -5,7 +5,7 @@ title: Row_ColumnGrouping
 
 # Interface: Row\_ColumnGrouping
 
-Defined in: [features/column-grouping/columnGroupingFeature.types.ts:136](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/column-grouping/columnGroupingFeature.types.ts#L136)
+Defined in: [features/column-grouping/columnGroupingFeature.types.ts:58](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/column-grouping/columnGroupingFeature.types.ts#L58)
 
 ## Properties
 
@@ -15,7 +15,7 @@ Defined in: [features/column-grouping/columnGroupingFeature.types.ts:136](https:
 _groupingValuesCache: Record<string, any>;
 ```
 
-Defined in: [features/column-grouping/columnGroupingFeature.types.ts:137](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/column-grouping/columnGroupingFeature.types.ts#L137)
+Defined in: [features/column-grouping/columnGroupingFeature.types.ts:59](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/column-grouping/columnGroupingFeature.types.ts#L59)
 
 ***
 
@@ -25,7 +25,7 @@ Defined in: [features/column-grouping/columnGroupingFeature.types.ts:137](https:
 getGroupingValue: (columnId) => unknown;
 ```
 
-Defined in: [features/column-grouping/columnGroupingFeature.types.ts:141](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/column-grouping/columnGroupingFeature.types.ts#L141)
+Defined in: [features/column-grouping/columnGroupingFeature.types.ts:63](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/column-grouping/columnGroupingFeature.types.ts#L63)
 
 Reads the value used to group this row for a column id.
 
@@ -47,7 +47,7 @@ Reads the value used to group this row for a column id.
 getIsGrouped: () => boolean;
 ```
 
-Defined in: [features/column-grouping/columnGroupingFeature.types.ts:145](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/column-grouping/columnGroupingFeature.types.ts#L145)
+Defined in: [features/column-grouping/columnGroupingFeature.types.ts:67](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/column-grouping/columnGroupingFeature.types.ts#L67)
 
 Checks whether this row represents a grouped row.
 
@@ -63,7 +63,7 @@ Checks whether this row represents a grouped row.
 optional groupingColumnId: string;
 ```
 
-Defined in: [features/column-grouping/columnGroupingFeature.types.ts:149](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/column-grouping/columnGroupingFeature.types.ts#L149)
+Defined in: [features/column-grouping/columnGroupingFeature.types.ts:71](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/column-grouping/columnGroupingFeature.types.ts#L71)
 
 If this row is grouped, this is the id of the column that this row is grouped by.
 
@@ -75,6 +75,6 @@ If this row is grouped, this is the id of the column that this row is grouped by
 optional groupingValue: unknown;
 ```
 
-Defined in: [features/column-grouping/columnGroupingFeature.types.ts:153](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/column-grouping/columnGroupingFeature.types.ts#L153)
+Defined in: [features/column-grouping/columnGroupingFeature.types.ts:75](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/column-grouping/columnGroupingFeature.types.ts#L75)
 
 If this row is grouped, this is the unique/shared value for the `groupingColumnId` for all of the rows in this group.

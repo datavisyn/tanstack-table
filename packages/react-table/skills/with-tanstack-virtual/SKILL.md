@@ -5,7 +5,7 @@ description: >
 metadata:
   type: composition
   library: '@tanstack/react-table'
-  library_version: '9.0.0-beta.38'
+  library_version: '9.0.0-beta.58'
   framework: react
 requires:
   - '@tanstack/table-core#core'
@@ -194,4 +194,4 @@ Source: `examples/react/virtualized-rows`
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/react-table/src/index.ts` for Table render APIs and installed `node_modules/@tanstack/react-virtual/src/` for the exact virtualizer options. Copy layout contracts from the maintained example matching rows, columns, or infinite loading.
+Inspect `node_modules/@tanstack/react-table/dist/index.d.ts` for Table render APIs and installed `node_modules/@tanstack/react-virtual/dist/` for the exact virtualizer options. Copy layout contracts from the maintained example matching rows, columns, or infinite loading.

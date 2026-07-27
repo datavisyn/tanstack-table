@@ -1,7 +1,10 @@
 import type { CoreFeatures } from '../core/coreFeatures'
 import type { CellData, RowData, UnionToIntersection } from './type-utils'
+import type { Cell } from './Cell'
 import type { Column } from './Column'
 import type { ColumnDefBase_All } from './ColumnDef'
+import type { Header } from './Header'
+import type { HeaderGroup } from './HeaderGroup'
 import type { Row } from './Row'
 import type { Table_Internal } from './Table'
 import type { TableOptions_All } from './TableOptions'
@@ -10,7 +13,7 @@ import type { StockFeatures } from '../features/stockFeatures'
 import type { RowModel } from '../core/row-models/coreRowModelsFeature.types'
 import type { FilterFn } from '../features/column-filtering/columnFilteringFeature.types'
 import type { SortFn } from '../features/row-sorting/rowSortingFeature.types'
-import type { AggregationFn } from '../features/column-grouping/columnGroupingFeature.types'
+import type { AggregationFnDef } from '../features/row-aggregation/rowAggregationFeature.types'
 
 /**
  * Detects whether a type is `any`.
@@ -90,9 +93,9 @@ export type NonFeatureKeys =
  */
 export interface FeatureSlotPrereqs {
   /**
-   * Named aggregation functions are only meaningful when grouping is enabled.
+   * Named aggregation functions require the independent aggregation feature.
    */
-  aggregationFns: 'columnGroupingFeature'
+  aggregationFns: 'rowAggregationFeature'
   /**
    * Column resizing builds on the column sizing state and APIs.
    */
@@ -184,11 +187,13 @@ export interface TableFeatures
    * Registry of aggregation functions available to this table by name.
    *
    * Keys registered here become the valid string values for `aggregationFn` on
-   * column definitions, with full inference. Spread the exported
-   * `aggregationFns` to register the built-in aggregation functions:
-   * `aggregationFns: { ...aggregationFns, myCustomAggregationFn }`.
+   * column definitions, with full inference. Import the built-in aggregation
+   * functions you use individually and register them by their conventional
+   * names: `aggregationFns: { sum: aggregationFn_sum, myCustomAggregationFn }`.
+   * Spreading the exported `aggregationFns` registry also works, but puts
+   * every built-in aggregation function in your bundle.
    */
-  aggregationFns?: Record<string, AggregationFn<any, any>>
+  aggregationFns?: Record<string, AggregationFnDef<any, any, any, any>>
   /**
    * Type-only slot for declaring the type of `columnDef.meta` for all columns
    * of this table.
@@ -243,8 +248,11 @@ export interface TableFeatures
    *
    * Keys registered here become the valid string values for `filterFn` on
    * column definitions and the `globalFilterFn` option, with full inference.
-   * Spread the exported `filterFns` to register the built-in filter functions:
-   * `filterFns: { ...filterFns, myCustomFilterFn }`.
+   * Import the built-in filter functions you use individually and register
+   * them by their conventional names:
+   * `filterFns: { includesString: filterFn_includesString, myCustomFilterFn }`.
+   * Spreading the exported `filterFns` registry also works, but puts every
+   * built-in filter function in your bundle.
    */
   filterFns?: Record<string, FilterFn<any, any>>
   /**
@@ -281,8 +289,11 @@ export interface TableFeatures
    * Registry of sorting functions available to this table by name.
    *
    * Keys registered here become the valid string values for `sortFn` on column
-   * definitions, with full inference. Spread the exported `sortFns` to register
-   * the built-in sorting functions: `sortFns: { ...sortFns, myCustomSortFn }`.
+   * definitions, with full inference. Import the built-in sorting functions
+   * you use individually and register them by their conventional names:
+   * `sortFns: { alphanumeric: sortFn_alphanumeric, myCustomSortFn }`. Spreading
+   * the exported `sortFns` registry also works, but puts every built-in
+   * sorting function in your bundle.
    */
   sortFns?: Record<string, SortFn<any, any>>
   /**
@@ -302,8 +313,8 @@ export interface TableFeatures
  *
  * Feature objects are registered in the table's `features` option. They can
  * contribute default state/options, default column definitions, table APIs,
- * shared prototype APIs for rows/columns/headers/cells, and per-instance row
- * or column data.
+ * shared prototype APIs for rows/columns/headers/cells, and per-instance data
+ * for tables, columns, rows, headers, header groups, and cells.
  */
 export interface TableFeature {
   /**
@@ -368,8 +379,9 @@ export interface TableFeature {
    *
    * The table is a singleton, unlike rows, columns, headers, and cells, so
    * table APIs are assigned directly instead of through a shared prototype.
-   * This runs while the table is being constructed, after options and initial
-   * state have been resolved.
+   * This hook is exclusively for assigning table methods. It runs after
+   * options, state atoms, and the store have been created and after every
+   * feature's `initTableInstanceData` hook has completed.
    */
   constructTableAPIs?: <TFeatures extends TableFeatures, TData extends RowData>(
     table: Table_Internal<TFeatures, TData>,
@@ -410,6 +422,38 @@ export interface TableFeature {
    */
   getInitialState?: (initialState: Partial<TableState_All>) => TableState_All
   /**
+   * Initializes mutable, non-reactive data owned by this feature on the table
+   * instance.
+   *
+   * This runs once during table construction after options, state atoms, and
+   * the store are available, and before any feature's `constructTableAPIs`
+   * hook runs. Use `constructTableAPIs` exclusively for assigning table
+   * methods. Table resets do not rerun this hook; use
+   * `resetTableInstanceData` to clear transient instance data instead.
+   */
+  initTableInstanceData?: <
+    TFeatures extends TableFeatures,
+    TData extends RowData,
+  >(
+    table: Table_Internal<TFeatures, TData>,
+  ) => void
+  /**
+   * Initializes instance-specific data on each cell.
+   *
+   * This runs for every constructed cell after core cell fields such as `id`,
+   * `column`, and `row` have been assigned. Cells are constructed lazily on
+   * first access per row/column pair and cached, so this runs once per cell
+   * instance. Use this for per-cell mutable data, caches, or annotations.
+   * Shared methods should be assigned via `assignCellPrototype` instead.
+   */
+  initCellInstanceData?: <
+    TFeatures extends TableFeatures,
+    TData extends RowData,
+    TValue extends CellData = CellData,
+  >(
+    cell: Cell<TFeatures, TData, TValue>,
+  ) => void
+  /**
    * Initializes instance-specific data on each column.
    *
    * This runs for every constructed column after core column fields such as
@@ -425,6 +469,39 @@ export interface TableFeature {
     column: Column<TFeatures, TData, TValue>,
   ) => void
   /**
+   * Initializes instance-specific data on each header group.
+   *
+   * This runs for every constructed header group after `depth`, `id`, and the
+   * fully populated `headers` array have been assigned. Header groups have no
+   * shared prototype, so this is their only per-instance extension point.
+   * Header groups are reconstructed whenever they recompute (e.g. column
+   * visibility, order, or pinning changes), so this reruns on every rebuild.
+   */
+  initHeaderGroupInstanceData?: <
+    TFeatures extends TableFeatures,
+    TData extends RowData,
+  >(
+    headerGroup: HeaderGroup<TFeatures, TData>,
+  ) => void
+  /**
+   * Initializes instance-specific data on each header.
+   *
+   * This runs for every constructed header after core header fields such as
+   * `id`, `column`, `depth`, `index`, and `isPlaceholder` have been assigned,
+   * but before `subHeaders` are populated and before `headerGroup` is linked.
+   * Headers are reconstructed on every header group rebuild, so this reruns
+   * on every rebuild. Use this for per-header mutable data, caches, or
+   * annotations. Shared methods should be assigned via `assignHeaderPrototype`
+   * instead.
+   */
+  initHeaderInstanceData?: <
+    TFeatures extends TableFeatures,
+    TData extends RowData,
+    TValue extends CellData = CellData,
+  >(
+    header: Header<TFeatures, TData, TValue>,
+  ) => void
+  /**
    * Initializes instance-specific data on each row.
    *
    * This runs for every constructed row after core row fields such as `id`,
@@ -437,5 +514,18 @@ export interface TableFeature {
     TData extends RowData,
   >(
     row: Row<TFeatures, TData>,
+  ) => void
+  /**
+   * Resets mutable, non-reactive table-instance data owned by this feature.
+   *
+   * This runs after internally owned state atoms have been restored to
+   * `table.initialState` by `table.reset()`. It is intended for transient
+   * feature data, not table state slices or externally controlled state.
+   */
+  resetTableInstanceData?: <
+    TFeatures extends TableFeatures,
+    TData extends RowData,
+  >(
+    table: Table_Internal<TFeatures, TData>,
   ) => void
 }

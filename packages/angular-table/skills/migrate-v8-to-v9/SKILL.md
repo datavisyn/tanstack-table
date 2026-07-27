@@ -6,7 +6,7 @@ metadata:
   type: lifecycle
   library: '@tanstack/angular-table'
   framework: angular
-  library_version: '9.0.0-beta.38'
+  library_version: '9.0.0-beta.58'
 requires:
   - '@tanstack/table-core#migrate-v8-to-v9'
   - getting-started
@@ -34,7 +34,7 @@ Framework prerequisite: Angular 19 or newer (`@angular/core >=19`).
 const features = tableFeatures({
   rowSortingFeature,
   sortedRowModel: createSortedRowModel(),
-  sortFns,
+  sortFns: { alphanumeric: sortFn_alphanumeric },
 })
 
 class TableCmp {
@@ -59,7 +59,7 @@ class TableCmp {
 
 The initializer reruns when signals read inside it change and calls `setOptions`; do not rebuild columns or features there.
 
-Feature imports are `columnFilteringFeature`, `globalFilteringFeature`, `rowSortingFeature`, `rowPaginationFeature`, `rowSelectionFeature`, `rowExpandingFeature`, `rowPinningFeature`, `columnPinningFeature`, `columnVisibilityFeature`, `columnOrderingFeature`, `columnSizingFeature`, `columnResizingFeature`, `columnGroupingFeature`, and `columnFacetingFeature`. APIs are feature-gated. Put a feature before its dependent slot in the same `tableFeatures` call.
+Feature imports are `columnFilteringFeature`, `globalFilteringFeature`, `rowSortingFeature`, `rowPaginationFeature`, `rowSelectionFeature`, `rowExpandingFeature`, `rowPinningFeature`, `columnPinningFeature`, `columnVisibilityFeature`, `columnOrderingFeature`, `columnSizingFeature`, `columnResizingFeature`, `rowAggregationFeature`, `columnGroupingFeature`, and `columnFacetingFeature`. APIs are feature-gated. Put a feature before its dependent slot in the same `tableFeatures` call. Aggregation is independent from grouping: register `rowAggregationFeature` for aggregation APIs and add `columnGroupingFeature` only for grouped rows.
 
 ### Row-model mapping
 
@@ -74,7 +74,7 @@ Feature imports are `columnFilteringFeature`, `globalFilteringFeature`, `rowSort
 | `getFacetedMinMaxValues()` | `facetedMinMaxValues: createFacetedMinMaxValues()`                  |
 | `getFacetedUniqueValues()` | `facetedUniqueValues: createFacetedUniqueValues()`                  |
 
-Factories take no arguments. `filterFns`, `sortFns`, and `aggregationFns` are sibling feature slots.
+Factories take no arguments. `filterFns`, `sortFns`, and `aggregationFns` are sibling feature slots; register individually imported built-ins (`filterFn_includesString`, `sortFn_alphanumeric`, `aggregationFn_sum`) under their conventional keys. The full registry objects still work but bundle every built-in.
 
 ## Angular State Migration
 
@@ -191,4 +191,4 @@ Use `row.getValue('name')`; prototype methods require the original instance and 
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/angular-table/src/index.ts`, `injectTable.ts`, and rendering sources. Verify feature slots and exact beta APIs in `node_modules/@tanstack/table-core/src`; do not reconstruct v9 from v8 memory.
+Inspect `node_modules/@tanstack/angular-table/dist/types/` for the bundled public API; do not reconstruct v9 from v8 memory.

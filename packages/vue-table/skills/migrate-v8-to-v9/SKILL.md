@@ -6,7 +6,7 @@ metadata:
   type: lifecycle
   library: '@tanstack/vue-table'
   framework: vue
-  library_version: '9.0.0-beta.40'
+  library_version: '9.0.0-beta.58'
 requires:
   - '@tanstack/table-core#migrate-v8-to-v9'
   - getting-started
@@ -33,7 +33,7 @@ Framework prerequisite: Vue 3.2 or newer (`vue >=3.2`).
 const features = tableFeatures({
   rowSortingFeature,
   sortedRowModel: createSortedRowModel(),
-  sortFns,
+  sortFns: { alphanumeric: sortFn_alphanumeric },
 })
 const data = ref(makeData())
 const table = useTable({ features, columns, data })
@@ -51,7 +51,7 @@ const table = useTable({ features, columns, data })
 | `filterFns` / `aggregationFns` table options | Same-named feature slots                                   |
 | Top-level `onStateChange`                    | Per-slice callbacks, external atoms, or store subscription |
 
-Available feature imports are `columnFilteringFeature`, `globalFilteringFeature`, `rowSortingFeature`, `rowPaginationFeature`, `rowSelectionFeature`, `rowExpandingFeature`, `rowPinningFeature`, `columnPinningFeature`, `columnVisibilityFeature`, `columnOrderingFeature`, `columnSizingFeature`, `columnResizingFeature`, `columnGroupingFeature`, and `columnFacetingFeature`. APIs are feature-gated. Put every feature before its dependent slot in the same `tableFeatures` call.
+Available feature imports are `columnFilteringFeature`, `globalFilteringFeature`, `rowSortingFeature`, `rowPaginationFeature`, `rowSelectionFeature`, `rowExpandingFeature`, `rowPinningFeature`, `columnPinningFeature`, `columnVisibilityFeature`, `columnOrderingFeature`, `columnSizingFeature`, `columnResizingFeature`, `rowAggregationFeature`, `columnGroupingFeature`, and `columnFacetingFeature`. APIs are feature-gated. Put every feature before its dependent slot in the same `tableFeatures` call. Aggregation is independent from grouping: register `rowAggregationFeature` for aggregation APIs and add `columnGroupingFeature` only for grouped rows.
 
 ### Row-model mapping
 
@@ -66,7 +66,7 @@ Available feature imports are `columnFilteringFeature`, `globalFilteringFeature`
 | `getFacetedMinMaxValues()` | `facetedMinMaxValues: createFacetedMinMaxValues()`                  |
 | `getFacetedUniqueValues()` | `facetedUniqueValues: createFacetedUniqueValues()`                  |
 
-Factories take no arguments. Register `filterFns`, `sortFns`, and `aggregationFns` as sibling feature slots.
+Factories take no arguments. Register `filterFns`, `sortFns`, and `aggregationFns` as sibling feature slots holding individually imported built-ins (`filterFn_includesString`, `sortFn_alphanumeric`, `aggregationFn_sum`) under their conventional keys. The full registry objects still work but bundle every built-in.
 
 ## Vue State Migration
 
@@ -182,4 +182,4 @@ For `table.Subscribe`, use `children={(atoms) => ...}` explicitly.
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/vue-table/src/index.ts` and `useTable.ts`; verify feature slots and exact beta APIs in `node_modules/@tanstack/table-core/src`. Do not reconstruct v9 from v8 memory.
+Inspect `node_modules/@tanstack/vue-table/dist/index.d.ts` and `useTable.d.ts`; verify feature slots and exact beta APIs in `node_modules/@tanstack/table-core/dist/`. Do not reconstruct v9 from v8 memory.

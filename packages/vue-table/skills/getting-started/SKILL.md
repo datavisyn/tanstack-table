@@ -6,7 +6,7 @@ metadata:
   type: framework
   library: '@tanstack/vue-table'
   framework: vue
-  library_version: '9.0.0-beta.40'
+  library_version: '9.0.0-beta.58'
 requires:
   - '@tanstack/table-core#core'
   - '@tanstack/table-core#table-features'
@@ -67,18 +67,18 @@ const table = useTable({ features, columns, data })
 import {
   createSortedRowModel,
   rowSortingFeature,
-  sortFns,
+  sortFn_alphanumeric,
   tableFeatures,
 } from '@tanstack/vue-table'
 
 const features = tableFeatures({
   rowSortingFeature,
   sortedRowModel: createSortedRowModel(),
-  sortFns,
+  sortFns: { alphanumeric: sortFn_alphanumeric },
 })
 ```
 
-The slot follows its prerequisite feature in the same call.
+The slot follows its prerequisite feature in the same call. Import individual `sortFn_*` built-ins and register only the ones your columns reference; the full `sortFns` registry object still works but bundles every built-in.
 
 ## Common Mistakes
 
@@ -141,4 +141,4 @@ Source: `examples/vue/basic-use-table/src/App.tsx`
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/vue-table/src/index.ts`, then `useTable.ts` and `FlexRender.ts`. Inspect core feature APIs in `node_modules/@tanstack/table-core/src/features/<feature>/`.
+Inspect `node_modules/@tanstack/vue-table/dist/index.d.ts`, then `useTable.d.ts` and `FlexRender.d.ts`. Inspect core feature APIs in `node_modules/@tanstack/table-core/dist/features/<feature>/`.

@@ -1,4 +1,4 @@
-import { cloneState, hasOwn, isFunction } from '../../utils'
+import { cloneState, hasOwn } from '../../utils'
 import type { Column_Internal } from '../../types/Column'
 import type { CellData, RowData, Updater } from '../../types/type-utils'
 import type { TableFeatures } from '../../types/TableFeatures'
@@ -6,7 +6,6 @@ import type { Table_Internal } from '../../types/Table'
 import type { Row } from '../../types/Row'
 import type { Cell } from '../../types/Cell'
 import type {
-  AggregationFn,
   GroupingState,
   Row_ColumnGrouping,
 } from './columnGroupingFeature.types'
@@ -133,69 +132,6 @@ export function column_getToggleGroupingHandler<
     if (!canGroup) return
     column_toggleGrouping(column)
   }
-}
-
-/**
- * Chooses a built-in aggregation function from the first core row value.
- *
- * Numeric columns default to `sum`, date-like values default to `extent`, and
- * other value types leave aggregation unspecified.
- *
- * @example
- * ```ts
- * const aggregationFn = column_getAutoAggregationFn(column)
- * ```
- */
-export function column_getAutoAggregationFn<
-  TFeatures extends TableFeatures,
-  TData extends RowData,
-  TValue extends CellData = CellData,
->(column: Column_Internal<TFeatures, TData, TValue>) {
-  const aggregationFns:
-    | Record<string, AggregationFn<TFeatures, TData>>
-    | undefined = column.table._rowModelFns.aggregationFns
-
-  const firstRow = column.table.getCoreRowModel().flatRows[0]
-
-  const value = firstRow?.getValue(column.id)
-
-  if (typeof value === 'number') {
-    return aggregationFns?.sum
-  }
-
-  if (Object.prototype.toString.call(value) === '[object Date]') {
-    return aggregationFns?.extent
-  }
-
-  return undefined
-}
-
-/**
- * Resolves the aggregation function configured for a column.
- *
- * Function-valued `columnDef.aggregationFn` is returned directly, `'auto'`
- * delegates to `column_getAutoAggregationFn`, and string values are looked up in
- * the table's aggregation function registry.
- *
- * @example
- * ```ts
- * const aggregationFn = column_getAggregationFn(column)
- * ```
- */
-export function column_getAggregationFn<
-  TFeatures extends TableFeatures,
-  TData extends RowData,
-  TValue extends CellData = CellData,
->(column: Column_Internal<TFeatures, TData, TValue>) {
-  const aggregationFns:
-    | Record<string, AggregationFn<TFeatures, TData>>
-    | undefined = column.table._rowModelFns.aggregationFns
-
-  return isFunction(column.columnDef.aggregationFn)
-    ? column.columnDef.aggregationFn
-    : column.columnDef.aggregationFn === 'auto'
-      ? column_getAutoAggregationFn(column)
-      : aggregationFns?.[column.columnDef.aggregationFn as string]
 }
 
 /**
@@ -332,27 +268,4 @@ export function cell_getIsPlaceholder<
   TValue extends CellData = CellData,
 >(cell: Cell<TFeatures, TData, TValue>) {
   return !cell_getIsGrouped(cell) && column_getIsGrouped(cell.column)
-}
-
-/**
- * Checks whether this cell should render an aggregated value.
- *
- * Aggregated cells are non-placeholder, non-grouped cells on rows that have
- * subRows.
- *
- * @example
- * ```ts
- * const isAggregated = cell_getIsAggregated(cell)
- * ```
- */
-export function cell_getIsAggregated<
-  TFeatures extends TableFeatures,
-  TData extends RowData,
-  TValue extends CellData = CellData,
->(cell: Cell<TFeatures, TData, TValue>) {
-  return (
-    !cell_getIsGrouped(cell) &&
-    !cell_getIsPlaceholder(cell) &&
-    !!cell.row.subRows.length
-  )
 }

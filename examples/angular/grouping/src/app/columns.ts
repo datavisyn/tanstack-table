@@ -1,5 +1,4 @@
 import {
-  aggregationFns,
   columnFilteringFeature,
   columnGroupingFeature,
   createExpandedRowModel,
@@ -7,7 +6,6 @@ import {
   createGroupedRowModel,
   createPaginatedRowModel,
   createTableHook,
-  filterFns,
   rowExpandingFeature,
   rowPaginationFeature,
   tableFeatures,
@@ -23,8 +21,6 @@ const features = tableFeatures({
   expandedRowModel: createExpandedRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
   filteredRowModel: createFilteredRowModel(),
-  aggregationFns,
-  filterFns,
 })
 
 export const { createAppColumnHelper, injectAppTable: injectTable } =
@@ -54,17 +50,12 @@ export const columns = columnHelper.columns([
     columns: columnHelper.columns([
       columnHelper.accessor('age', {
         header: () => 'Age',
-        aggregatedCell: ({ getValue }) =>
-          Math.round(getValue<number>() * 100) / 100,
-        aggregationFn: 'median',
       }),
       columnHelper.group({
         header: 'More Info',
         columns: columnHelper.columns([
           columnHelper.accessor('visits', {
             header: () => `Visits`,
-            aggregationFn: 'sum',
-            aggregatedCell: ({ getValue }) => getValue().toLocaleString(),
           }),
           columnHelper.accessor('status', {
             header: 'Status',
@@ -72,9 +63,6 @@ export const columns = columnHelper.columns([
           columnHelper.accessor('progress', {
             header: 'Profile Progress',
             cell: ({ getValue }) =>
-              Math.round(getValue<number>() * 100) / 100 + '%',
-            aggregationFn: 'mean',
-            aggregatedCell: ({ getValue }) =>
               Math.round(getValue<number>() * 100) / 100 + '%',
           }),
         ]),

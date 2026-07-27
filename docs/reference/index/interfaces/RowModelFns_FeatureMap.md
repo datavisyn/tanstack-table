@@ -25,17 +25,17 @@ Defined in: [types/RowModelFns.ts:9](https://github.com/TanStack/table/blob/main
 columnFilteringFeature: RowModelFns_ColumnFiltering<TFeatures, TData>;
 ```
 
-Defined in: [types/RowModelFns.ts:13](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/RowModelFns.ts#L13)
+Defined in: [types/RowModelFns.ts:14](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/RowModelFns.ts#L14)
 
 ***
 
-### columnGroupingFeature
+### rowAggregationFeature
 
 ```ts
-columnGroupingFeature: RowModelFns_ColumnGrouping<TFeatures, TData>;
+rowAggregationFeature: RowModelFns_RowAggregation<TFeatures, TData>;
 ```
 
-Defined in: [types/RowModelFns.ts:14](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/RowModelFns.ts#L14)
+Defined in: [types/RowModelFns.ts:13](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/RowModelFns.ts#L13)
 
 ***
 

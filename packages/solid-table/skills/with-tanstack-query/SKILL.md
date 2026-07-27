@@ -6,7 +6,7 @@ metadata:
   {
     type: composition,
     library: '@tanstack/solid-table',
-    library_version: '9.0.0-beta.38',
+    library_version: '9.0.0-beta.58',
     framework: solid,
   }
 requires:
@@ -146,4 +146,4 @@ Source: `docs/framework/solid/guide/pagination.md`
 
 ## API Discovery
 
-Inspect installed `node_modules/@tanstack/solid-table/src/createTable.ts` and the relevant core feature source; inspect `@tanstack/solid-query` source for reactive option shapes.
+Inspect installed `node_modules/@tanstack/solid-table/dist/createTable.d.ts` and the relevant core feature source; inspect `@tanstack/solid-query` source for reactive option shapes.

@@ -6,7 +6,7 @@ metadata:
   {
     type: framework,
     library: '@tanstack/solid-table',
-    library_version: '9.0.0-beta.38',
+    library_version: '9.0.0-beta.58',
     framework: solid,
   }
 requires: ['@tanstack/table-core#core', '@tanstack/table-core#table-features']
@@ -172,4 +172,4 @@ Source: `packages/solid-table/src/createTable.ts`
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/solid-table/src/index.tsx`, then `createTable.ts`, `FlexRender.tsx`, and installed core feature directories.
+Inspect `node_modules/@tanstack/solid-table/dist/index.d.ts`, then `createTable.d.ts`, `FlexRender.d.ts`, and installed core feature directories.

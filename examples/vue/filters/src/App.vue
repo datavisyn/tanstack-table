@@ -10,6 +10,11 @@ const columnHelper = createAppColumnHelper<Person>()
 
 const columns = ref(
   columnHelper.columns([
+    columnHelper.display({
+      id: 'rowNumber',
+      header: '#',
+      cell: ({ row }) => row.getDisplayIndex() + 1,
+    }),
     columnHelper.group({
       header: 'Name',
       footer: (props) => props.column.id,
@@ -71,11 +76,20 @@ const stressTest = () => {
 }
 
 const table = useAppTable({
-  debugTable: true,
   data,
   get columns() {
     return columns.value
   },
+  // initialState: { columnFilters: [{ id: 'firstName', value: 'Jane' }] }, // set filters once
+  // atoms: { columnFilters: columnFiltersAtom }, // preferred: own column filters with an external atom
+  // state: { columnFilters }, // classic controlled state; pair with onColumnFiltersChange
+  // onColumnFiltersChange: setColumnFilters,
+  // enableFilters: false, // disable all column and global filtering; default true
+  // enableColumnFilters: false, // disable per-column filters; default true
+  // filterFromLeafRows: true, // keep parents whose descendants match; default filters from parents down
+  // maxLeafRowFilterDepth: 1, // only filter through this nested-row depth; default 100
+  // manualFiltering: true, // pass data that is already filtered, for example from a server
+  debugTable: true,
 })
 
 function handleGoToPage(e: any) {

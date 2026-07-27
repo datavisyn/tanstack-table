@@ -9,4 +9,4 @@ title: BuiltInSortFn
 type BuiltInSortFn = keyof typeof sortFns;
 ```
 
-Defined in: [fns/sortFns.ts:352](https://github.com/TanStack/table/blob/main/packages/table-core/src/fns/sortFns.ts#L352)
+Defined in: [features/row-sorting/sortFns.ts:366](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/row-sorting/sortFns.ts#L366)

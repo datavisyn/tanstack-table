@@ -26,6 +26,11 @@ const data = ref(makeData(1_000))
 
 const columns = ref(
   columnHelper.columns([
+    columnHelper.display({
+      id: 'rowNumber',
+      header: '#',
+      cell: ({ row }) => row.getDisplayIndex() + 1,
+    }),
     columnHelper.group({
       header: 'Name',
       footer: (props) => props.column.id,
@@ -78,6 +83,15 @@ const table = useTable({
   get columns() {
     return columns.value
   },
+  // initialState: { pagination: { pageIndex: 1, pageSize: 20 } }, // set the initial page once
+  // atoms: { pagination: paginationAtom }, // preferred: own pagination state with an external atom
+  // state: { pagination }, // classic controlled state; pair with onPaginationChange
+  // onPaginationChange: setPagination,
+  // autoResetPageIndex: false, // keep the current page after page-altering changes; default true
+  // autoResetAll: false, // turn off every feature's automatic reset, including page index
+  // manualPagination: true, // pass data that is already paginated, for example from a server
+  // pageCount: 10, // total pages for manual pagination; use -1 when unknown
+  // rowCount: 1_000, // total rows for manual pagination; pageCount is calculated from this and pageSize
   debugTable: true,
 })
 

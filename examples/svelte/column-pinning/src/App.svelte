@@ -17,7 +17,8 @@
     createTable,
     createTableState,
     tableFeatures,
-    sortFns,
+    sortFn_alphanumeric,
+    sortFn_text,
   } from '@tanstack/svelte-table'
   import './index.css'
   import { makeData, type Person } from './makeData'
@@ -28,7 +29,10 @@
     columnVisibilityFeature,
     rowSortingFeature,
     sortedRowModel: createSortedRowModel(),
-    sortFns,
+    sortFns: {
+      alphanumeric: sortFn_alphanumeric,
+      text: sortFn_text,
+    },
   })
 
   const columns: ColumnDef<typeof features, Person>[] = [
@@ -121,6 +125,9 @@
     onColumnOrderChange: setColumnOrder,
     onColumnPinningChange: setColumnPinning,
     onColumnVisibilityChange: setColumnVisibility,
+    // initialState: { columnPinning: { start: ['firstName'], end: [] } }, // `start`/`end` follow layout direction
+    // atoms: { columnPinning: columnPinningAtom }, // preferred: own pinning state with an external atom
+    // enableColumnPinning: false, // disable pinning for every column; default true
     debugTable: true,
   })
 </script>

@@ -6,7 +6,7 @@ metadata:
   type: composition
   library: '@tanstack/angular-table'
   framework: angular
-  library_version: '9.0.0-beta.38'
+  library_version: '9.0.0-beta.58'
 requires:
   - '@tanstack/table-core#core'
   - getting-started
@@ -123,4 +123,4 @@ Source: `examples/angular/virtualized-columns/src/app/app.ts`
 
 ## API Discovery
 
-Inspect installed `@tanstack/angular-table/src`, installed `@tanstack/angular-virtual/src`, and the maintained Angular examples for current row, column, measurement, and infinite patterns.
+Inspect installed `@tanstack/angular-table/dist/types/`, installed `@tanstack/angular-virtual/dist/`, and the maintained Angular examples for current row, column, measurement, and infinite patterns.

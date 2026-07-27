@@ -6,7 +6,7 @@ metadata:
   type: framework
   library: '@tanstack/alpine-table'
   framework: alpine
-  library_version: '9.0.0-beta.41'
+  library_version: '9.0.0-beta.58'
 requires:
   - '@tanstack/table-core#core'
   - '@tanstack/table-core#table-features'
@@ -105,4 +105,4 @@ Source: TanStack/table:docs/overview.md
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/alpine-table/src/index.ts` and `createTable.ts`. Exact core APIs live under `node_modules/@tanstack/table-core/src/`.
+Inspect `node_modules/@tanstack/alpine-table/dist/index.d.ts` and `createTable.d.ts`. Exact core APIs live under `node_modules/@tanstack/table-core/dist/`.

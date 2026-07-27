@@ -5,7 +5,7 @@ description: >
 metadata:
   type: lifecycle
   library: '@tanstack/react-table'
-  library_version: '9.0.0-beta.38'
+  library_version: '9.0.0-beta.58'
   framework: react
 requires:
   - '@tanstack/table-core#migrate-v8-to-v9'
@@ -29,9 +29,9 @@ import {
   columnFilteringFeature,
   createFilteredRowModel,
   createSortedRowModel,
-  filterFns,
+  filterFn_includesString,
   rowSortingFeature,
-  sortFns,
+  sortFn_alphanumeric,
   tableFeatures,
   useTable,
 } from '@tanstack/react-table'
@@ -41,8 +41,8 @@ const features = tableFeatures({
   rowSortingFeature,
   filteredRowModel: createFilteredRowModel(),
   sortedRowModel: createSortedRowModel(),
-  filterFns,
-  sortFns,
+  filterFns: { includesString: filterFn_includesString },
+  sortFns: { alphanumeric: sortFn_alphanumeric },
 })
 
 const table = useTable({ features, columns, data })
@@ -72,7 +72,9 @@ Prefer explicit features as the end state. `stockFeatures` is a useful kitchen-s
 | `aggregationFns` table option/factory argument | `aggregationFns` slot in `tableFeatures()`                      |
 | Early-v9-beta `rowModels: { ... }`             | Named row-model slots directly in `tableFeatures()`             |
 
-Declare each prerequisite feature before its row-model slot in the same `tableFeatures()` call. Available stock features are `columnFilteringFeature`, `globalFilteringFeature`, `rowSortingFeature`, `rowPaginationFeature`, `rowSelectionFeature`, `rowExpandingFeature`, `rowPinningFeature`, `columnPinningFeature`, `columnVisibilityFeature`, `columnOrderingFeature`, `columnSizingFeature`, `columnResizingFeature`, `columnGroupingFeature`, and `columnFacetingFeature`.
+In the registry slots, register individually imported built-ins (`filterFn_includesString`, `sortFn_alphanumeric`, `aggregationFn_sum`, and so on) under their conventional keys alongside custom functions; the full `filterFns`/`sortFns`/`aggregationFns` registry objects still work but bundle every built-in.
+
+Declare each prerequisite feature before its row-model slot in the same `tableFeatures()` call. Available stock features are `columnFilteringFeature`, `globalFilteringFeature`, `rowSortingFeature`, `rowPaginationFeature`, `rowSelectionFeature`, `rowExpandingFeature`, `rowPinningFeature`, `columnPinningFeature`, `columnVisibilityFeature`, `columnOrderingFeature`, `columnSizingFeature`, `columnResizingFeature`, `rowAggregationFeature`, `columnGroupingFeature`, and `columnFacetingFeature`. Aggregation is independent from grouping: register `rowAggregationFeature` for aggregation APIs and add `columnGroupingFeature` only for grouped rows.
 
 ### State and React subscriptions
 
@@ -221,4 +223,4 @@ All other underscore-prefixed internals are removed. `getIsSomeRowsSelected()` a
 
 ## API discovery
 
-Inspect `node_modules/@tanstack/react-table/src/index.ts` and `node_modules/@tanstack/table-core/src/index.ts` for the installed v9 exports and types. Inspect `src/legacy.ts` only to identify temporary bridge code that remains to be removed.
+Inspect `node_modules/@tanstack/react-table/dist/index.d.ts` and `node_modules/@tanstack/table-core/dist/index.d.ts` for the installed v9 exports and types. Inspect `dist/legacy.d.ts` only to identify temporary bridge code that remains to be removed.

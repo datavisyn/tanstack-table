@@ -6,7 +6,7 @@ metadata:
   {
     type: sub-skill,
     library: '@tanstack/table-core',
-    library_version: '9.0.0-beta.38',
+    library_version: '9.0.0-beta.58',
   }
 requires: ['core', 'table-features', 'column-sizing']
 sources:
@@ -86,4 +86,4 @@ Source: `docs/framework/react/guide/column-pinning.md#useful-column-pinning-apis
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/table-core/src/features/column-pinning/`; use CSS logical properties for direction-aware rendering.
+Inspect `node_modules/@tanstack/table-core/dist/features/column-pinning/`; use CSS logical properties for direction-aware rendering.

@@ -6,7 +6,7 @@ metadata:
   {
     type: sub-skill,
     library: '@tanstack/table-core',
-    library_version: '9.0.0-beta.38',
+    library_version: '9.0.0-beta.58',
   }
 requires: ['core', 'table-features', 'client-vs-server']
 sources:
@@ -77,4 +77,4 @@ Source: `packages/table-core/src/features/row-expanding/rowExpandingFeature.type
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/table-core/src/features/row-expanding/` for expansion state, row APIs, and model placement.
+Inspect `node_modules/@tanstack/table-core/dist/features/row-expanding/` for expansion state, row APIs, and model placement.

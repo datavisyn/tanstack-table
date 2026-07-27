@@ -6,7 +6,7 @@ metadata:
   {
     type: sub-skill,
     library: '@tanstack/table-core',
-    library_version: '9.0.0-beta.38',
+    library_version: '9.0.0-beta.58',
   }
 requires: ['core', 'table-features', 'client-vs-server']
 sources:
@@ -23,16 +23,21 @@ This skill builds on `core`, `table-features`, and `client-vs-server`. Filtering
 import {
   columnFilteringFeature,
   createFilteredRowModel,
-  filterFns,
+  filterFn_includesString,
   tableFeatures,
 } from '@tanstack/table-core'
 
 export const features = tableFeatures({
   columnFilteringFeature,
   filteredRowModel: createFilteredRowModel(),
-  filterFns,
+  filterFns: { includesString: filterFn_includesString },
 })
 ```
+
+Import individual `filterFn_*` built-ins and register only those your columns
+reference by string name or that `filterFn: 'auto'` should resolve for your
+data types. The full `filterFns` registry object still works but bundles every
+built-in.
 
 ## Core Patterns
 
@@ -79,4 +84,4 @@ Source: `packages/table-core/src/features/column-filtering/columnFilteringFeatur
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/table-core/src/features/column-filtering/` and `src/fns/filterFns.ts` for exact signatures and auto-remove behavior.
+Inspect `node_modules/@tanstack/table-core/dist/features/column-filtering/` and `dist/features/column-filtering/filterFns.d.ts` for exact signatures and auto-remove behavior.

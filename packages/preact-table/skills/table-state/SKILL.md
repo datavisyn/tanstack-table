@@ -6,7 +6,7 @@ metadata:
   {
     type: framework,
     library: '@tanstack/preact-table',
-    library_version: '9.0.0-beta.38',
+    library_version: '9.0.0-beta.58',
     framework: preact,
   }
 requires: ['@tanstack/table-core#core', getting-started]
@@ -152,4 +152,4 @@ Source: `examples/preact/basic-subscribe`
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/preact-table/src/useTable.ts` and `Subscribe.tsx`; use `@tanstack/preact-store` rather than React Store hooks.
+Inspect `node_modules/@tanstack/preact-table/dist/useTable.d.ts` and `Subscribe.d.ts`; use `@tanstack/preact-store` rather than React Store hooks.

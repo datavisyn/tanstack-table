@@ -7,12 +7,14 @@ import {
   createPaginatedRowModel,
   createSortedRowModel,
   createTable,
-  filterFns,
+  filterFn_inNumberRange,
+  filterFn_includesString,
   rowExpandingFeature,
   rowPaginationFeature,
   rowSelectionFeature,
   rowSortingFeature,
-  sortFns,
+  sortFn_alphanumeric,
+  sortFn_text,
   tableFeatures,
 } from '@tanstack/alpine-table'
 import { makeData } from './makeData'
@@ -30,8 +32,14 @@ const features = tableFeatures({
   filteredRowModel: createFilteredRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
   sortedRowModel: createSortedRowModel(),
-  filterFns,
-  sortFns,
+  filterFns: {
+    includesString: filterFn_includesString,
+    inNumberRange: filterFn_inNumberRange,
+  },
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    text: sortFn_text,
+  },
 })
 
 // The `firstName` column renders an interactive selection checkbox + expander in
@@ -39,6 +47,11 @@ const features = tableFeatures({
 // those controls are rendered directly in `index.html` (special-cased by column
 // id), so here the column just exposes the plain value.
 const columns: Array<ColumnDef<typeof features, Person>> = [
+  {
+    id: 'rowNumber',
+    header: '#',
+    cell: ({ row }) => row.getDisplayIndex() + 1,
+  },
   {
     accessorKey: 'firstName',
     header: () => 'First Name',
@@ -86,6 +99,19 @@ Alpine.data('table', () => {
       return local.data
     },
     getSubRows: (row) => row.subRows,
+    // initialState: { expanded: { '0': true } }, // expand rows on first render
+    // atoms: { expanded: expandedAtom }, // preferred: own expanded state with an external atom
+    // state: { expanded }, // classic controlled state; pair with onExpandedChange
+    // onExpandedChange: setExpanded,
+    // enableExpanding: false, // disable expanding for every row; default true
+    // getRowCanExpand: row => row.original.subRows?.length > 0, // override which rows can expand
+    // getIsRowExpanded: row => row.id === '0', // override whether a row is expanded
+    // manualExpanding: true, // pass data that is already expanded, for example from a server
+    // paginateExpandedRows: false, // keep expanded children on their parent page; default true
+    // autoResetExpanded: false, // keep expanded rows after page-altering changes; default true
+    // autoResetAll: false, // turn off every feature's automatic reset, including expansion
+    // filterFromLeafRows: true, // with filtering, keep parents whose descendants match
+    // maxLeafRowFilterDepth: 0, // with filtering, only filter root rows
     debugTable: true,
   })
 

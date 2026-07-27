@@ -2,7 +2,6 @@ import { useMemo, useState } from 'preact/hooks'
 import { render } from 'preact'
 import './index.css'
 import {
-  aggregationFns,
   columnFilteringFeature,
   columnGroupingFeature,
   createExpandedRowModel,
@@ -11,11 +10,13 @@ import {
   createPaginatedRowModel,
   createSortedRowModel,
   createTableHook,
-  filterFns,
+  filterFn_inNumberRange,
+  filterFn_includesString,
   rowExpandingFeature,
   rowPaginationFeature,
   rowSortingFeature,
-  sortFns,
+  sortFn_alphanumeric,
+  sortFn_text,
 } from '@tanstack/preact-table'
 import { makeData } from './makeData'
 import type { Person } from './makeData'
@@ -33,9 +34,14 @@ const { useAppTable, createAppColumnHelper } = createTableHook({
     groupedRowModel: createGroupedRowModel(),
     paginatedRowModel: createPaginatedRowModel(),
     sortedRowModel: createSortedRowModel(),
-    filterFns,
-    sortFns,
-    aggregationFns,
+    filterFns: {
+      includesString: filterFn_includesString,
+      inNumberRange: filterFn_inNumberRange,
+    },
+    sortFns: {
+      alphanumeric: sortFn_alphanumeric,
+      text: sortFn_text,
+    },
   },
 })
 
@@ -61,14 +67,9 @@ function App() {
         }),
         columnHelper.accessor('age', {
           header: () => 'Age',
-          aggregatedCell: ({ getValue }) =>
-            Math.round(getValue<number>() * 100) / 100,
-          aggregationFn: 'median',
         }),
         columnHelper.accessor('visits', {
           header: () => <span>Visits</span>,
-          aggregationFn: 'sum',
-          aggregatedCell: ({ getValue }) => getValue<number>().toLocaleString(),
         }),
         columnHelper.accessor('status', {
           header: 'Status',
@@ -77,9 +78,6 @@ function App() {
           header: 'Profile Progress',
           cell: ({ getValue }) =>
             Math.round(getValue<number>() * 100) / 100 + '%',
-          aggregationFn: 'mean',
-          aggregatedCell: ({ getValue }) =>
-            Math.round(getValue<number>() * 100) / 100 + '%',
         }),
       ]),
     [],
@@ -87,12 +85,19 @@ function App() {
 
   const [data, setData] = useState(() => makeData(10_000))
   const refreshData = () => setData(() => makeData(10_000))
-  const stressTest = () => setData(() => makeData(200_000))
+  const stressTest = () => setData(() => makeData(1_000_000))
 
   const table = useAppTable(
     {
       columns,
       data,
+      // initialState: { grouping: ['status'] }, // group by a column on first render
+      // atoms: { grouping: groupingAtom }, // preferred: own grouping state with an external atom
+      // state: { grouping }, // classic controlled state; pair with onGroupingChange
+      // onGroupingChange: setGrouping,
+      // enableGrouping: false, // disable grouping for every column; default true
+      // groupedColumnMode: 'remove', // remove grouped columns instead of moving them to the start; default 'reorder'
+      // manualGrouping: true, // pass rows that are already grouped, for example from a server
       debugTable: true,
     },
     (state) => state, // default selector
@@ -102,7 +107,7 @@ function App() {
     <div className="demo-root">
       <div>
         <button onClick={() => refreshData()}>Regenerate Data</button>
-        <button onClick={() => stressTest()}>Stress Test (200k rows)</button>
+        <button onClick={() => stressTest()}>Stress Test (1M rows)</button>
       </div>
       <div className="spacer-sm" />
       <table>
@@ -145,11 +150,9 @@ function App() {
                       style={{
                         background: cell.getIsGrouped()
                           ? '#0aff0082'
-                          : cell.getIsAggregated()
-                            ? '#ffa50078'
-                            : cell.getIsPlaceholder()
-                              ? '#ff000042'
-                              : 'white',
+                          : cell.getIsPlaceholder()
+                            ? '#ff000042'
+                            : 'white',
                       }}
                     >
                       {cell.getIsGrouped() ? (
@@ -166,11 +169,7 @@ function App() {
                             {row.subRows.length.toLocaleString()})
                           </button>
                         </>
-                      ) : cell.getIsAggregated() ? (
-                        // If the cell is aggregated, use the Aggregated
-                        // renderer for cell
-                        <table.FlexRender cell={cell} />
-                      ) : cell.getIsPlaceholder() ? null : ( // For cells with repeated values, render null
+                      ) : cell.getIsPlaceholder() ? null : row.getIsGrouped() ? null : ( // For cells with repeated values, render null
                         // Otherwise, just render the regular cell
                         <table.FlexRender cell={cell} />
                       )}

@@ -6,7 +6,7 @@ metadata:
   {
     type: sub-skill,
     library: '@tanstack/table-core',
-    library_version: '9.0.0-beta.38',
+    library_version: '9.0.0-beta.58',
   }
 requires: ['core', 'table-features']
 sources:
@@ -72,4 +72,4 @@ Source: `examples/react/column-dnd/src/main.tsx`
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/table-core/src/features/column-ordering/`; combine with pinning/visibility skills when those plugins are registered.
+Inspect `node_modules/@tanstack/table-core/dist/features/column-ordering/`; combine with pinning/visibility skills when those plugins are registered.

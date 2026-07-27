@@ -6,7 +6,9 @@ import {
   createColumnHelper,
   createFilteredRowModel,
   createPaginatedRowModel,
-  filterFns,
+  filterFn_equalsString,
+  filterFn_inNumberRange,
+  filterFn_includesString,
   metaHelper,
   rowPaginationFeature,
   tableFeatures,
@@ -27,7 +29,11 @@ const features = tableFeatures({
   rowPaginationFeature,
   filteredRowModel: createFilteredRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
-  filterFns,
+  filterFns: {
+    includesString: filterFn_includesString,
+    inNumberRange: filterFn_inNumberRange,
+    equalsString: filterFn_equalsString,
+  },
   columnMeta: metaHelper<MyColumnMeta>(),
 })
 
@@ -37,6 +43,11 @@ function App() {
   const columns = React.useMemo(
     () =>
       columnHelper.columns([
+        columnHelper.display({
+          id: 'rowNumber',
+          header: '#',
+          cell: ({ row }) => row.getDisplayIndex() + 1,
+        }),
         columnHelper.accessor('firstName', {
           cell: (info) => info.getValue(),
         }),
@@ -64,6 +75,7 @@ function App() {
         }),
         columnHelper.accessor('status', {
           header: 'Status',
+          filterFn: 'equalsString', // filterFn string to pick from filterFns
           meta: {
             filterVariant: 'select',
           },
@@ -73,13 +85,8 @@ function App() {
           meta: {
             filterVariant: 'range',
           },
-          // custom filter function
-          filterFn: (row, _columnId, filterValue) => {
-            return (
-              row.original.progress >= filterValue[0] &&
-              row.original.progress <= filterValue[1]
-            )
-          },
+          filterFn: filterFn_inNumberRange, // or just reference static filterFn from import
+          // you could also write your own custom filter function here
         }),
       ]),
     [],
@@ -94,6 +101,15 @@ function App() {
       features,
       columns,
       data,
+      // initialState: { columnFilters: [{ id: 'firstName', value: 'Jane' }] }, // set filters once
+      // atoms: { columnFilters: columnFiltersAtom }, // preferred: own column filters with an external atom
+      // state: { columnFilters }, // classic controlled state; pair with onColumnFiltersChange
+      // onColumnFiltersChange: setColumnFilters,
+      // enableFilters: false, // disable all column and global filtering; default true
+      // enableColumnFilters: false, // disable per-column filters; default true
+      // filterFromLeafRows: true, // keep parents whose descendants match; default filters from parents down
+      // maxLeafRowFilterDepth: 1, // only filter through this nested-row depth; default 100
+      // manualFiltering: true, // pass data that is already filtered, for example from a server
       debugTable: true,
       debugColumns: true,
     },

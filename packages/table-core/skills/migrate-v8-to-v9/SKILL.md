@@ -5,7 +5,7 @@ description: >
 metadata:
   type: lifecycle
   library: '@tanstack/table-core'
-  library_version: '9.0.0-beta.38'
+  library_version: '9.0.0-beta.58'
 requires: ['core', 'table-features', 'typescript']
 sources:
   - 'TanStack/table:docs/framework/react/guide/migrating.md'
@@ -42,9 +42,9 @@ import {
   createFilteredRowModel,
   createSortedRowModel,
   columnFilteringFeature,
-  filterFns,
+  filterFn_includesString,
   rowSortingFeature,
-  sortFns,
+  sortFn_alphanumeric,
   tableFeatures,
 } from '@tanstack/table-core'
 
@@ -53,8 +53,8 @@ export const features = tableFeatures({
   rowSortingFeature,
   filteredRowModel: createFilteredRowModel(),
   sortedRowModel: createSortedRowModel(),
-  filterFns,
-  sortFns,
+  filterFns: { includesString: filterFn_includesString },
+  sortFns: { alphanumeric: sortFn_alphanumeric },
 })
 ```
 
@@ -68,17 +68,18 @@ V8 bundled all stock features. V9 exposes an API only when its feature is presen
 
 | Capability                  | V9 feature                |
 | --------------------------- | ------------------------- |
+| Aggregation                 | `rowAggregationFeature`   |
 | Column faceting             | `columnFacetingFeature`   |
 | Column filtering            | `columnFilteringFeature`  |
-| Grouping and aggregation    | `columnGroupingFeature`   |
 | Column ordering             | `columnOrderingFeature`   |
 | Column pinning              | `columnPinningFeature`    |
-| Interactive column resizing | `columnResizingFeature`   |
 | Column sizes and offsets    | `columnSizingFeature`     |
 | Column visibility           | `columnVisibilityFeature` |
 | Global filtering            | `globalFilteringFeature`  |
-| Row expansion               | `rowExpandingFeature`     |
+| Grouping                    | `columnGroupingFeature`   |
+| Interactive column resizing | `columnResizingFeature`   |
 | Pagination                  | `rowPaginationFeature`    |
+| Row expansion               | `rowExpandingFeature`     |
 | Row pinning                 | `rowPinningFeature`       |
 | Row selection               | `rowSelectionFeature`     |
 | Sorting                     | `rowSortingFeature`       |
@@ -90,6 +91,7 @@ Honor feature prerequisites in the same `tableFeatures` call:
 - `columnResizingFeature` requires `columnSizingFeature`.
 - `globalFilteringFeature` requires `columnFilteringFeature`.
 - Every row-model or function-registry slot requires its associated feature.
+- `aggregationFns` requires `rowAggregationFeature`; grouped aggregation uses both `rowAggregationFeature` and `columnGroupingFeature`.
 - Put prerequisite feature properties before dependent slots so inference and diagnostics remain clear.
 
 ### 2. Move row models into feature slots and rename factories
@@ -118,7 +120,25 @@ Move registries from table options or factory arguments into these feature slots
 | `filterFns`      | `filterFns`      |
 | `aggregationFns` | `aggregationFns` |
 
-Register built-ins only when needed, or spread them with custom functions. A slot's keys become the valid string names in column definitions.
+Register only the built-ins the table references by string name, importing each individually (`filterFn_includesString`, `sortFn_alphanumeric`, `aggregationFn_sum`, and so on) alongside any custom functions. The full registry objects (`filterFns`, `sortFns`, `aggregationFns` exports) still work but bundle every built-in. A slot's keys become the valid string names in column definitions, and `'auto'` resolves only registered functions.
+
+Aggregation is independent from grouping. Add `rowAggregationFeature` for
+`aggregationFn`, `aggregatedCell`, `column.getAggregationValue(options?)`, and
+`cell.getIsAggregated`. A root total does not require grouping. Convert legacy
+custom callables `(columnId, leafRows, childRows) => result` to
+`constructAggregationFn({ aggregate: (context) => result, merge? })`
+definitions. Replace `column.getAggregationFn()` with
+`column.getAggregationFns()`; arrays in `aggregationFn` return keyed objects.
+Replace the old `AggregationFn` and `CreatedAggregationFn` types with
+`AggregationFnDef`. Aggregation row selection is shared across every definition
+on a column: `maxAggregationDepth` defaults to `0`, while `1` selects direct
+sub-rows and `Infinity` selects terminal rows. Explicit totals can override it
+with the single object signature
+`column.getAggregationValue({ rows, maxDepth })`; positional row and depth
+arguments are not supported. All built-ins consume the same selected `rows`.
+Custom definitions can inspect grouped `subRows`, and `merge` receives matching
+`subRowResults`. Use `table.getMaxSubRowDepth()` when a depth should derive from
+the deepest structural row in the core model.
 
 ### 3. Migrate state reads and whole-state observation
 
@@ -279,7 +299,8 @@ Do not confuse new capabilities with required breakages. After the table works, 
 - [ ] Remove `getCoreRowModel()` unless supplying a deliberate custom `coreRowModel` slot.
 - [ ] Move all remaining `get*RowModel()` options or earlier-beta `rowModels` entries to `create*RowModel()` feature slots.
 - [ ] Register each dependent feature before its row-model slot.
-- [ ] Move `filterFns`, `sortingFns`/`sortFns`, and `aggregationFns` into feature slots; pass no registries to factories.
+- [ ] Move `filterFns`, `sortingFns`/`sortFns`, and `aggregationFns` into feature slots, registering individually imported built-ins; pass no registries to factories.
+- [ ] Register `rowAggregationFeature` independently and migrate custom aggregation callables to context-based `AggregationFnDef` definitions.
 - [ ] Register `columnFilteringFeature` before global filtering and filter/facet dependencies.
 - [ ] Register `columnSizingFeature` before `columnResizingFeature`.
 - [ ] Replace `table.getState()` and top-level `onStateChange` according to the adapter state guide.
@@ -319,14 +340,14 @@ Both obscure missing feature decisions; `useLegacyTable` is deprecated and React
 
 Core concepts are shared, but reactive reads, constructors, and rendering helpers are not. Load the package-local adapter skills.
 
-## Installed-source API discovery
+## Installed API discovery
 
 Use the installed version, not main-branch memory:
 
-1. Inspect `node_modules/@tanstack/table-core/src/index.ts` for exports.
-2. Inspect `src/types/TableFeatures.ts` for valid slots and prerequisites.
-3. Inspect `src/features/<feature>/*.types.ts` for current options, state, and APIs.
-4. Inspect the installed adapter's `src/index.ts` and its migration skill for entrypoints and rendering.
-5. Inspect `src/legacy.ts` only to remove an existing bridge, never to design new v9 code.
+1. Inspect `node_modules/@tanstack/table-core/dist/index.d.ts` for exports.
+2. Inspect `dist/types/TableFeatures.d.ts` for valid slots and prerequisites.
+3. Inspect `dist/features/<feature>/*.types.d.ts` for current options, state, and APIs.
+4. Inspect the installed adapter's `dist/index.d.ts` and its migration skill for entrypoints and rendering.
+5. Inspect `dist/legacy.d.ts` only to remove an existing bridge, never to design new v9 code.
 
 If package-manager layout prevents that exact path, resolve the installed package root first. Do not substitute APIs from a different v9 beta.

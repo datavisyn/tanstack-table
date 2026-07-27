@@ -6,7 +6,8 @@ import {
   createColumnHelper,
   createFilteredRowModel,
   createPaginatedRowModel,
-  filterFns,
+  filterFn_inNumberRange,
+  filterFn_includesString,
   globalFilteringFeature,
   rowPaginationFeature,
   rowSelectionFeature,
@@ -32,7 +33,10 @@ const features = tableFeatures({
   globalFilteringFeature,
   filteredRowModel: createFilteredRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
-  filterFns,
+  filterFns: {
+    includesString: filterFn_includesString,
+    inNumberRange: filterFn_inNumberRange,
+  },
 })
 
 const columnHelper = createColumnHelper<typeof features, Person>()
@@ -58,7 +62,9 @@ function App() {
                 checked={row.getIsSelected()}
                 disabled={!row.getCanSelect()}
                 indeterminate={row.getIsSomeSelected()}
-                onChange={row.getToggleSelectedHandler()}
+                onChange={row.getToggleSelectedHandler({
+                  // selectChildren: false
+                })}
               />
             </div>
           ),
@@ -112,7 +118,13 @@ function App() {
       data,
       getRowId: (row) => row.id,
       enableRowSelection: true, // enable row selection for all rows
-      // enableRowSelection: row => row.original.age > 18, // or enable row selection conditionally per row
+      // initialState: { rowSelection: { '0': true } }, // select rows on first render
+      // state: { rowSelection }, // classic controlled state; pair with onRowSelectionChange
+      // onRowSelectionChange: setRowSelection,
+      // enableMultiRowSelection: false, // allow only one selected row at a time; default true
+      // enableRowRangeSelection: false, // disable Shift-click range selection; default true
+      // enableSubRowSelection: false, // do not select a parent's subrows with it; default true
+      // isRowRangeSelectionEvent: event => Boolean(event.metaKey), // use Meta instead of Shift
       debugTable: true,
     },
     (state) => state, // default selector
@@ -146,6 +158,7 @@ function App() {
           />
         </div>
         <div className="spacer-sm" />
+        <p>Hold Shift while selecting rows to select or deselect a range.</p>
         <table>
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (

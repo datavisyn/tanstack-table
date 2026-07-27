@@ -6,7 +6,7 @@ metadata:
   type: framework
   library: '@tanstack/angular-table'
   framework: angular
-  library_version: '9.0.0-beta.38'
+  library_version: '9.0.0-beta.58'
 requires:
   - '@tanstack/table-core#core'
   - '@tanstack/table-core#table-features'
@@ -135,4 +135,4 @@ Source: `docs/framework/angular/guide/rendering.md`
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/angular-table/src/index.ts`, `injectTable.ts`, `flexRender.ts`, and `flex-render/`; inspect optional feature APIs in installed `@tanstack/table-core/src/features/`.
+Inspect `node_modules/@tanstack/angular-table/dist/types/` for the bundled public API; inspect optional feature APIs in installed `@tanstack/table-core/dist/features/`.

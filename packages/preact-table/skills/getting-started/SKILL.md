@@ -6,7 +6,7 @@ metadata:
   {
     type: framework,
     library: '@tanstack/preact-table',
-    library_version: '9.0.0-beta.38',
+    library_version: '9.0.0-beta.58',
     framework: preact,
   }
 requires: ['@tanstack/table-core#core', '@tanstack/table-core#table-features']
@@ -154,4 +154,4 @@ Source: `examples/preact/basic-use-table`
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/preact-table/src/index.ts`, then `useTable.ts`, `Subscribe.tsx`, or `FlexRender.tsx`; follow core exports into installed `@tanstack/table-core/src/`.
+Inspect `node_modules/@tanstack/preact-table/dist/index.d.ts`, then `useTable.d.ts`, `Subscribe.d.ts`, or `FlexRender.d.ts`; follow core exports into installed `@tanstack/table-core/dist/`.

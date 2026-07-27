@@ -6,7 +6,7 @@ metadata:
   type: framework
   library: '@tanstack/alpine-table'
   framework: alpine
-  library_version: '9.0.0-beta.41'
+  library_version: '9.0.0-beta.58'
 requires:
   - '@tanstack/table-core#core'
   - getting-started
@@ -95,4 +95,4 @@ Source: TanStack/table:packages/alpine-table/src/createTable.ts
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/alpine-table/src/createTableHook.ts`; do not infer component/context APIs from React, Vue, Solid, Svelte, Angular, or Lit adapters.
+Inspect `node_modules/@tanstack/alpine-table/dist/createTableHook.d.ts`; do not infer component/context APIs from React, Vue, Solid, Svelte, Angular, or Lit adapters.

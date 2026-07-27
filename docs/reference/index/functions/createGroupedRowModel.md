@@ -9,15 +9,14 @@ title: createGroupedRowModel
 function createGroupedRowModel<TFeatures, TData>(): (table) => () => RowModel<TFeatures, TData>;
 ```
 
-Defined in: [features/column-grouping/createGroupedRowModel.ts:27](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/column-grouping/createGroupedRowModel.ts#L27)
+Defined in: [features/column-grouping/createGroupedRowModel.ts:26](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/column-grouping/createGroupedRowModel.ts#L26)
 
 Creates a memoized grouped row model factory.
 
 The factory reads the relevant table state atoms and options, then returns a row model function used by the table row-model pipeline.
 
-Register aggregation functions with the `aggregationFns` slot on the
-`features` option:
-`tableFeatures({ columnGroupingFeature, groupedRowModel: createGroupedRowModel(), aggregationFns })`.
+When rowAggregationFeature is also registered, grouped rows use its shared
+executor for non-group values. Grouping remains useful without aggregation.
 
 ## Type Parameters
 

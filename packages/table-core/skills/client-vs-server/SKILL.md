@@ -5,7 +5,7 @@ description: >
 metadata:
   type: sub-skill
   library: '@tanstack/table-core'
-  library_version: '9.0.0-beta.38'
+  library_version: '9.0.0-beta.58'
 requires: ['core', 'table-features']
 sources:
   - 'TanStack/table:docs/guide/row-models.md'
@@ -161,4 +161,4 @@ Source: `docs/guide/data.md`
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/table-core/src/core/row-models/coreRowModelsFeature.utils.ts` for pipeline order and each feature's `.types.ts` for its `manual*` contract.
+Inspect `node_modules/@tanstack/table-core/dist/core/row-models/coreRowModelsFeature.utils.d.ts` for pipeline order and each feature's `.types.d.ts` for its `manual*` contract.

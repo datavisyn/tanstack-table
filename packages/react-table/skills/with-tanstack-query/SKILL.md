@@ -5,7 +5,7 @@ description: >
 metadata:
   type: composition
   library: '@tanstack/react-table'
-  library_version: '9.0.0-beta.38'
+  library_version: '9.0.0-beta.58'
   framework: react
 requires:
   - '@tanstack/table-core#client-vs-server'
@@ -183,4 +183,4 @@ Source: `examples/react/with-tanstack-query`
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/react-table/src/index.ts` and the relevant core feature source; inspect the installed `@tanstack/react-query` source for current query option types.
+Inspect `node_modules/@tanstack/react-table/dist/index.d.ts` and the relevant core feature source; inspect the installed `@tanstack/react-query` source for current query option types.

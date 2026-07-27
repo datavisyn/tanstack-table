@@ -5,7 +5,7 @@ title: Row_FeatureMap
 
 # Interface: Row\_FeatureMap\<TFeatures, TData\>
 
-Defined in: [types/Row.ts:17](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/Row.ts#L17)
+Defined in: [types/Row.ts:18](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/Row.ts#L18)
 
 ## Type Parameters
 
@@ -25,7 +25,7 @@ Defined in: [types/Row.ts:17](https://github.com/TanStack/table/blob/main/packag
 columnFilteringFeature: Row_ColumnFiltering<TFeatures, TData>;
 ```
 
-Defined in: [types/Row.ts:21](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/Row.ts#L21)
+Defined in: [types/Row.ts:23](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/Row.ts#L23)
 
 ***
 
@@ -35,7 +35,7 @@ Defined in: [types/Row.ts:21](https://github.com/TanStack/table/blob/main/packag
 columnGroupingFeature: Row_ColumnGrouping;
 ```
 
-Defined in: [types/Row.ts:22](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/Row.ts#L22)
+Defined in: [types/Row.ts:24](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/Row.ts#L24)
 
 ***
 
@@ -45,7 +45,7 @@ Defined in: [types/Row.ts:22](https://github.com/TanStack/table/blob/main/packag
 columnPinningFeature: Row_ColumnPinning<TFeatures, TData>;
 ```
 
-Defined in: [types/Row.ts:23](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/Row.ts#L23)
+Defined in: [types/Row.ts:25](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/Row.ts#L25)
 
 ***
 
@@ -55,7 +55,17 @@ Defined in: [types/Row.ts:23](https://github.com/TanStack/table/blob/main/packag
 columnVisibilityFeature: Row_ColumnVisibility<TFeatures, TData>;
 ```
 
-Defined in: [types/Row.ts:24](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/Row.ts#L24)
+Defined in: [types/Row.ts:26](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/Row.ts#L26)
+
+***
+
+### rowAggregationFeature
+
+```ts
+rowAggregationFeature: Row_RowAggregation;
+```
+
+Defined in: [types/Row.ts:22](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/Row.ts#L22)
 
 ***
 
@@ -65,7 +75,7 @@ Defined in: [types/Row.ts:24](https://github.com/TanStack/table/blob/main/packag
 rowExpandingFeature: Row_RowExpanding;
 ```
 
-Defined in: [types/Row.ts:25](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/Row.ts#L25)
+Defined in: [types/Row.ts:27](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/Row.ts#L27)
 
 ***
 
@@ -75,7 +85,7 @@ Defined in: [types/Row.ts:25](https://github.com/TanStack/table/blob/main/packag
 rowPinningFeature: Row_RowPinning;
 ```
 
-Defined in: [types/Row.ts:26](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/Row.ts#L26)
+Defined in: [types/Row.ts:28](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/Row.ts#L28)
 
 ***
 
@@ -85,4 +95,4 @@ Defined in: [types/Row.ts:26](https://github.com/TanStack/table/blob/main/packag
 rowSelectionFeature: Row_RowSelection;
 ```
 
-Defined in: [types/Row.ts:27](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/Row.ts#L27)
+Defined in: [types/Row.ts:29](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/Row.ts#L29)

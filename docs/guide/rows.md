@@ -55,6 +55,25 @@ const table = useTable({
 
 > Note: In some features like grouping and expanding, the `row.id` will have additional string appended to it.
 
+### Row Numbers and Display Indexes
+
+When displaying a row-number column, use `row.getDisplayIndex()` instead of `row.index`. The display index follows the table's current logical display order, including filtering, grouping, sorting, and expansion. `row.index` is the row's position within its parent array when the row is created, so it does not change to reflect the current display pipeline.
+
+```js
+const rowNumberColumn = columnHelper.display({
+  id: 'rowNumber',
+  header: '#',
+  cell: ({ row }) => {
+    const displayIndex = row.getDisplayIndex()
+    return displayIndex === -1 ? '' : displayIndex + 1
+  },
+})
+```
+
+`row.getDisplayIndex()` returns a zero-based index before pagination, or `-1` when the row is not present in the current display order.
+
+> Never read `row._displayIndexCache` directly. It is an internal implementation cache that can be stale until display order is recomputed. `row.getDisplayIndex()` refreshes and validates the cached position before returning it.
+
 ### Access Row Values
 
 The recommended way to access data values from a row is to use either the `row.getValue` or `row.renderValue` APIs. Using either of these APIs will cache the results of the accessor functions and keep rendering efficient. The only difference between the two is that `row.renderValue` will return either the value or the `renderFallbackValue` if the value is undefined, whereas `row.getValue` will return the value or `undefined` if the value is undefined.
@@ -84,6 +103,7 @@ If you are using either grouping or expanding features, your rows may contain su
 - `row.depth`: The depth of the row (if nested or grouped) relative to the root row array. 0 for root level rows, 1 for child rows, 2 for grandchild rows, etc.
 - `row.parentId`: The unique ID of the parent row for the row (The row that contains this row in its subRows array).
 - `row.getParentRow`: Returns the parent row for the row, if it exists.
+- `table.getMaxSubRowDepth()`: Returns the deepest structural depth in the core row model. The result is memoized until the core row model changes.
 
 ## More Row APIs
 

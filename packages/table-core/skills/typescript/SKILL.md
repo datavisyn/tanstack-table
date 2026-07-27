@@ -5,7 +5,7 @@ description: >
 metadata:
   type: sub-skill
   library: '@tanstack/table-core'
-  library_version: '9.0.0-beta.38'
+  library_version: '9.0.0-beta.58'
 requires: ['core', 'table-features']
 sources:
   - 'TanStack/table:docs/guide/helpers.md'
@@ -123,4 +123,4 @@ Source: `docs/guide/table-and-column-meta.md`
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/table-core/src/helpers/` and the signatures re-exported by `src/index.ts`; avoid copying deep internal generic signatures into application code.
+Inspect `node_modules/@tanstack/table-core/dist/helpers/` and the signatures re-exported by `dist/index.d.ts`; avoid copying deep internal generic signatures into application code.

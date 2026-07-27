@@ -6,7 +6,9 @@ import {
   TableController,
   createSortedRowModel,
   rowSortingFeature,
-  sortFns,
+  sortFn_alphanumeric,
+  sortFn_datetime,
+  sortFn_text,
   tableFeatures,
 } from '@tanstack/lit-table'
 import { Person, makeData } from './makeData'
@@ -15,7 +17,11 @@ import type { ColumnDef, SortFn } from '@tanstack/lit-table'
 const features = tableFeatures({
   rowSortingFeature,
   sortedRowModel: createSortedRowModel(),
-  sortFns,
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    datetime: sortFn_datetime,
+    text: sortFn_text,
+  },
 })
 
 const sortStatusFn: SortFn<typeof features, Person> = (
@@ -30,6 +36,11 @@ const sortStatusFn: SortFn<typeof features, Person> = (
 }
 
 const columns: Array<ColumnDef<typeof features, Person>> = [
+  {
+    id: 'rowNumber',
+    header: '#',
+    cell: ({ row }) => row.getDisplayIndex() + 1,
+  },
   {
     accessorKey: 'firstName',
     cell: (info) => info.getValue(),
@@ -93,6 +104,19 @@ class LitTableExample extends LitElement {
         features,
         columns,
         data: this._data,
+        // initialState: { sorting: [{ id: 'firstName', desc: false }] }, // set the initial sort once
+        // atoms: { sorting: sortingAtom }, // preferred: own sorting state with an external atom
+        // state: { sorting }, // classic controlled state; pair with onSortingChange
+        // onSortingChange: setSorting,
+        // enableSorting: false, // disable sorting for every column; default true
+        // sortDescFirst: true, // start every sort cycle with descending order; inferred by column data by default
+        // enableSortingRemoval: false, // keep a sorted column sorted when toggling; default true
+        // enableMultiSort: false, // disable Shift-click multi-sorting; default true
+        // enableMultiRemove: false, // prevent a multi-sort toggle from removing a sorted column; default true
+        // isMultiSortEvent: () => true, // make every sort interaction a multi-sort; default requires Shift
+        // maxMultiSortColCount: 3, // limit multi-sorting to three columns; default Infinity
+        // manualSorting: true, // pass data that is already sorted, for example from a server
+        // autoResetPageIndex: false, // with pagination, keep the current page when sorting changes; default true
       },
       (state) => ({ sorting: state.sorting }),
     )

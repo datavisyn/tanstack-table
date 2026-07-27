@@ -8,7 +8,8 @@ import {
   createExpandedRowModel,
   createFilteredRowModel,
   createPaginatedRowModel,
-  filterFns,
+  filterFn_inNumberRange,
+  filterFn_includesString,
   rowExpandingFeature,
   rowPaginationFeature,
   rowPinningFeature,
@@ -26,7 +27,10 @@ const features = tableFeatures({
   filteredRowModel: createFilteredRowModel(),
   expandedRowModel: createExpandedRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
-  filterFns,
+  filterFns: {
+    includesString: filterFn_includesString,
+    inNumberRange: filterFn_inNumberRange,
+  },
 })
 
 function renderFilter(
@@ -188,6 +192,10 @@ class LitTableExample extends LitElement {
         },
         getSubRows: (row) => row.subRows,
         keepPinnedRows: true,
+        // atoms: { rowPinning: rowPinningAtom }, // preferred: own pinning state with an external atom
+        // state: { rowPinning }, // classic controlled state; pair with onRowPinningChange
+        // onRowPinningChange: setRowPinning,
+        // enableRowPinning: row => row.original.age > 18, // allow pinning only for matching rows; default true
         debugAll: true,
       },
       (state) => ({

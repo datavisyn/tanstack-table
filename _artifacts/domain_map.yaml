@@ -1,21 +1,13 @@
 library:
   name: '@tanstack/table'
-  version: '9.0.0-beta.38'
+  version: '9.0.0-beta.58'
   repository: 'https://github.com/TanStack/table'
   homepage: 'https://tanstack.com/table'
   description: 'Headless, framework-agnostic data-grid state and row-processing primitives with tree-shakeable v9 features and framework adapters.'
   primary_framework: 'framework-agnostic'
   monorepo: true
   package_version_overrides:
-    '@tanstack/alpine-table': '9.0.0-beta.41'
-    '@tanstack/angular-table-devtools': '9.0.0-beta.41'
-    '@tanstack/match-sorter-utils': '9.0.0-beta.41'
-    '@tanstack/preact-table-devtools': '9.0.0-beta.40'
-    '@tanstack/react-table-devtools': '9.0.0-beta.40'
-    '@tanstack/solid-table-devtools': '9.0.0-beta.40'
-    '@tanstack/table-devtools': '9.0.0-beta.40'
-    '@tanstack/vue-table': '9.0.0-beta.40'
-    '@tanstack/vue-table-devtools': '9.0.0-beta.40'
+    '@tanstack/match-sorter-utils': '9.0.0-beta.53'
 
 meta:
   generated_by: '@tanstack/intent scaffold domain discovery'
@@ -28,10 +20,10 @@ meta:
 scope:
   goals:
     - 'Route agents to the correct package and skill, then correct common foot-guns and misconceptions.'
-    - 'Use docs and examples for intended workflows, and direct exact API discovery to the installed package src directory.'
+    - 'Use docs and examples for intended workflows, and direct exact API discovery to installed package declarations (dist/**/*.d.ts).'
     - 'Teach headless rendering, feature registration, row-model ownership, framework state, and v8-to-v9 changes as foundations.'
   included:
-    - 'All 16 public workspace packages.'
+    - 'All 17 public workspace packages.'
     - 'All 14 stock Table v9 features, custom features, TypeScript helpers, migrations, framework state, composable table hooks, Query, Virtual, Devtools, and fuzzy ranking.'
     - 'Renderer-owned CSS edge cases for sticky positioning, column widths, resizing, layout, and virtualization.'
   excluded:
@@ -113,11 +105,13 @@ custom_feature_depth_contract:
     - 'The table_/column_/row_/cell_/header_ static-name prefixes, self argument difference, optional memoDeps, and absence of per-object assign*APIs utilities.'
 
 api_discovery_policy:
-  rule: 'For exact exports, option types, state shapes, and instance APIs, inspect src in the installed package before inventing an API or relying on memory.'
-  adapter_entrypoint: 'node_modules/@tanstack/<framework>-table/src/index.ts'
-  core_entrypoint: 'node_modules/@tanstack/table-core/src/index.ts'
-  feature_source: 'node_modules/@tanstack/table-core/src/features/<feature>/'
-  fallback: 'If source is unavailable because the package manager omitted it, inspect the matching declarations and the installed package version; do not substitute v8 or another adapter API.'
+  rule: 'For exact exports, option types, state shapes, and instance APIs, inspect dist declarations (.d.ts) in the installed package before inventing an API or relying on memory.'
+  adapter_entrypoint: 'node_modules/@tanstack/<framework>-table/dist/index.d.ts'
+  core_entrypoint: 'node_modules/@tanstack/table-core/dist/index.d.ts'
+  feature_source: 'node_modules/@tanstack/table-core/dist/features/<feature>/'
+  ember_entrypoint: 'node_modules/@tanstack/ember-table/declarations/index.d.ts'
+  angular_entrypoint: 'node_modules/@tanstack/angular-table/dist/types/'
+  fallback: 'If declarations are unavailable, resolve the installed package root and inspect published types; do not open package src/ or substitute v8 / another adapter API.'
 
 coverage:
   ignored_packages:
@@ -126,7 +120,7 @@ coverage:
     - 'tanstack-solid-table-example-basic-external-atoms'
     - 'tanstack-solid-table-example-basic-external-state'
     - 'tanstack-solid-table-example-basic-use-table'
-    - 'tanstack-solid-table-example-column-groups'
+    - 'tanstack-solid-table-example-header-groups'
     - 'tanstack-solid-table-example-column-ordering'
     - 'tanstack-solid-table-example-column-pinning'
     - 'tanstack-solid-table-example-column-pinning-split'
@@ -532,6 +526,23 @@ skills:
       - 'Using index-derived row IDs for persistent pinning while sorting, filtering, pagination, or data insertion changes indexes.'
       - 'Expecting row pinning to add sticky CSS or render top/center/bottom collections in the correct order automatically.'
       - 'Ignoring keepPinnedRows, so pinned rows remain visible outside the center row model when the desired product behavior was to filter or paginate them away.'
+
+  - slug: cell-selection
+    package: '@tanstack/table-core'
+    domain: feature-plugins
+    type: feature
+    purpose: 'Maintain spreadsheet-style rectangular cell ranges anchored to row and column ids across sorting, filtering, pagination, and column layout changes.'
+    sources:
+      [
+        'TanStack/table:docs/framework/react/guide/cell-selection.md',
+        'TanStack/table:packages/table-core/src/features/cell-selection',
+        'TanStack/table:examples/react/cell-selection',
+      ]
+    failure_modes:
+      - 'Expecting cellSelection to be a per-cell map; it is an array of two-corner rectangles, so a range widens onto new cells when sorting or column order changes what sits between its corners.'
+      - 'Binding only the mousedown handler and expecting drag selection, or reimplementing mouseup even though the start handler owns its own document listener.'
+      - 'Drawing the selection outline with borders on a border-collapse table, which changes row heights as cells become selected.'
+      - 'Re-rendering every cell on each drag update instead of subscribing per row to table.atoms.cellSelection.'
 
   - slug: row-selection
     package: '@tanstack/table-core'
@@ -1272,6 +1283,62 @@ skills:
       - 'Assuming Virtual or Table owns absolute positioning, measurement attributes, sticky CSS, or column widths.'
 
   - slug: getting-started
+    package: '@tanstack/ember-table'
+    domain: framework-adapters
+    type: framework
+    framework: ember
+    purpose: 'Create an Ember v9 table through the tracked useTable options thunk and render it with Glimmer-native FlexRender components.'
+    sources:
+      [
+        'TanStack/table:docs/framework/ember/quick-start.md',
+        'TanStack/table:examples/ember/basic-table',
+        'TanStack/table:packages/ember-table/src/index.ts',
+        'TanStack/table:packages/ember-table/src/use-table.ts',
+        'TanStack/table:packages/ember-table/src/FlexRender.gts',
+      ]
+    failure_modes:
+      - 'Passing an options object instead of a thunk, or failing to read tracked data inside that thunk.'
+      - 'Passing extracted v9 prototype methods through Ember templates without preserving their receiver.'
+      - 'Recreating features, columns, or derived data whenever tracked options rerun.'
+
+  - slug: table-state
+    package: '@tanstack/ember-table'
+    domain: framework-adapters
+    type: framework
+    framework: ember
+    purpose: 'Use Glimmer-tracked table reads and own slices internally, through Ember atoms, or through tracked controlled state.'
+    sources:
+      [
+        'TanStack/table:docs/framework/ember/guide/table-state.md',
+        'TanStack/table:examples/ember/basic-external-atoms',
+        'TanStack/table:examples/ember/basic-external-state',
+        'TanStack/table:packages/ember-table/src/use-table.ts',
+        'TanStack/table:packages/ember-table/src/reactivity.ts',
+        'TanStack/table:packages/ember-table/src/signal.ts',
+      ]
+    failure_modes:
+      - 'Inventing table.Subscribe or using the intentionally no-op table.store.subscribe instead of Glimmer-tracked reads.'
+      - 'Using removed table.getState() rather than table.store.state or a slice atom.'
+      - 'Mixing atoms and state ownership, omitting updater resolution, or trying to replace construct-time atoms after table creation.'
+
+  - slug: create-table-hook
+    package: '@tanstack/ember-table'
+    domain: framework-adapters
+    type: framework
+    framework: ember
+    purpose: 'Share Ember table features, row-model slots, defaults, and inferred column helpers without inventing a component registry.'
+    sources:
+      [
+        'TanStack/table:docs/framework/ember/guide/composable-tables.md',
+        'TanStack/table:examples/ember/basic-app-table',
+        'TanStack/table:packages/ember-table/src/create-table-hook.ts',
+      ]
+    failure_modes:
+      - 'Expecting AppTable/AppCell/context registries that the Ember factory does not implement.'
+      - 'Passing features at each createAppTable call or recreating the app hook in tracked scope.'
+      - 'Putting shared mutable state in factory defaults instead of keeping state ownership per table.'
+
+  - slug: getting-started
     package: '@tanstack/alpine-table'
     domain: framework-adapters
     type: framework
@@ -1525,7 +1592,7 @@ issue_evidence:
 
 documentation_read:
   narrative_docs: 'All 187 narrative Markdown documents were inventoried by title, headings, and admonitions; foundational, feature, state, migration, composable, and virtualization guides were deep-read.'
-  generated_references: 'All 828 generated reference documents were inventoried for exports and API categories; exact API truth is delegated to shipped src in skills.'
+  generated_references: 'All 828 generated reference documents were inventoried for exports and API categories; exact API truth is delegated to installed dist declarations (.d.ts) in skills.'
   examples: 'All 277 example directories were inventoried; basic, state, composable, Query, Virtual, feature, and Devtools-relevant examples were sampled or deep-read by skill.'
   source: 'All public package entrypoints, tableFeatures prerequisites, core construction/state precedence, all 14 feature implementations/defaults, createTableHook implementations, Devtools registration, and match-sorter-utils source were inspected.'
   community: 'Recent v9 issues plus recurring high-signal issues and GitHub discussions were reviewed for failure modes and misconceptions.'
@@ -1565,7 +1632,7 @@ maintainer_interview:
   phase_2_summary:
     - 'Primary journeys are first table setup, adding a feature, v8-to-v9 migration, server-data decisions, and performance debugging.'
     - 'Table is headless and compatible with component libraries/design systems, but no library-specific skills are in scope.'
-    - 'Feature skills should be short, edge-case-first, and route exact API discovery to shipped src.'
+    - 'Feature skills should be short, edge-case-first, and route exact API discovery to installed dist declarations (.d.ts).'
     - 'Framework state guides, createTableHook, Query, and Virtual require dedicated adapter guidance where source exists.'
     - 'Worker row models are excluded and useLegacyTable must not be promoted.'
   phase_4_completed: true

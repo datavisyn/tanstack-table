@@ -10,7 +10,9 @@ import {
   createFacetedUniqueValues,
   createFilteredRowModel,
   createPaginatedRowModel,
-  filterFns,
+  filterFn_equalsString,
+  filterFn_inNumberRange,
+  filterFn_includesString,
   metaHelper,
   rowPaginationFeature,
   tableFeatures,
@@ -35,7 +37,11 @@ const features = tableFeatures({
   facetedRowModel: createFacetedRowModel(),
   facetedMinMaxValues: createFacetedMinMaxValues(),
   facetedUniqueValues: createFacetedUniqueValues(),
-  filterFns,
+  filterFns: {
+    includesString: filterFn_includesString,
+    inNumberRange: filterFn_inNumberRange,
+    equalsString: filterFn_equalsString,
+  },
   columnMeta: metaHelper<MyColumnMeta>(),
 })
 
@@ -67,6 +73,7 @@ function App() {
         }),
         columnHelper.accessor('status', {
           header: 'Status',
+          filterFn: 'equalsString', // filterFn string to pick from filterFns
           meta: {
             filterVariant: 'select',
           },
@@ -76,6 +83,8 @@ function App() {
           meta: {
             filterVariant: 'range',
           },
+          filterFn: filterFn_inNumberRange, // or just reference static filterFn from import
+          // you could also write your own custom filter function here
         }),
       ]),
     [],
@@ -90,6 +99,16 @@ function App() {
       features,
       columns,
       data,
+      // Column faceting has no table-level options; configure its row-model factories in `features`.
+      // initialState: { columnFilters: [{ id: 'firstName', value: 'Jane' }] }, // set filters once
+      // atoms: { columnFilters: columnFiltersAtom }, // preferred: own column filters with an external atom
+      // state: { columnFilters }, // classic controlled state; pair with onColumnFiltersChange
+      // onColumnFiltersChange: setColumnFilters,
+      // enableFilters: false, // disable all column and global filtering; default true
+      // enableColumnFilters: false, // disable per-column filters; default true
+      // filterFromLeafRows: true, // keep parents whose descendants match; default filters from parents down
+      // maxLeafRowFilterDepth: 1, // only filter through this nested-row depth; default 100
+      // manualFiltering: true, // pass data that is already filtered, for example from a server
       debugTable: true,
       debugHeaders: true,
       debugColumns: false,

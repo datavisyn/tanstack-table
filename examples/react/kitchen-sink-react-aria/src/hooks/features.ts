@@ -1,5 +1,7 @@
 import {
-  aggregationFns,
+  rowAggregationFeature,
+  aggregationFn_mean,
+  aggregationFn_min,
   columnFacetingFeature,
   columnFilteringFeature,
   columnGroupingFeature,
@@ -15,14 +17,15 @@ import {
   createGroupedRowModel,
   createPaginatedRowModel,
   createSortedRowModel,
-  filterFns,
   globalFilteringFeature,
   metaHelper,
   rowExpandingFeature,
   rowPaginationFeature,
   rowSelectionFeature,
   rowSortingFeature,
-  sortFns,
+  sortFn_alphanumeric,
+  sortFn_datetime,
+  sortFn_text,
   tableFeatures,
 } from '@tanstack/react-table'
 import { rankItem } from '@tanstack/match-sorter-utils'
@@ -45,6 +48,7 @@ const fuzzyFilterFn = (
 }
 
 export const features = tableFeatures({
+  rowAggregationFeature,
   rowSortingFeature,
   rowPaginationFeature,
   rowSelectionFeature,
@@ -66,7 +70,14 @@ export const features = tableFeatures({
   sortedRowModel: createSortedRowModel(),
   groupedRowModel: createGroupedRowModel(),
   expandedRowModel: createExpandedRowModel(),
-  filterFns: { ...filterFns, fuzzy: fuzzyFilterFn },
-  sortFns,
-  aggregationFns,
+  filterFns: { fuzzy: fuzzyFilterFn },
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    datetime: sortFn_datetime,
+    text: sortFn_text,
+  },
+  aggregationFns: {
+    mean: aggregationFn_mean,
+    min: aggregationFn_min,
+  },
 })

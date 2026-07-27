@@ -10,7 +10,7 @@
     "test": "ng test",
     "test:e2e": "PLAYWRIGHT_TEST_DIR=$PWD/tests/e2e playwright test --config ../../../playwright.config.ts",
     "lint": "eslint ./src",
-    "test:types": "ng build",
+    "test:types": "tsc -p tsconfig.app.json --noEmit",
     "serve:ssr:remote-data": "node dist/remote-data/server/server.mjs"
   },
   "private": true,
@@ -25,7 +25,7 @@
     "@angular/platform-server": "^22.0.2",
     "@angular/router": "^22.0.2",
     "@angular/ssr": "^22.0.0",
-    "@tanstack/angular-table": "^9.0.0-beta.38",
+    "@tanstack/angular-table": "^9.0.0-beta.58",
     "express": "^5.2.1",
     "rxjs": "~7.8.2"
   },

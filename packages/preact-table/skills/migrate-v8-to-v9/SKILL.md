@@ -5,7 +5,7 @@ description: >
 metadata:
   type: lifecycle
   library: '@tanstack/preact-table'
-  library_version: '9.0.0-beta.38'
+  library_version: '9.0.0-beta.58'
   framework: preact
 requires:
   - '@tanstack/table-core#migrate-v8-to-v9'
@@ -17,7 +17,7 @@ sources:
   - 'TanStack/table:examples/preact/basic-use-table'
 ---
 
-Read `@tanstack/table-core#migrate-v8-to-v9`, `getting-started`, and `table-state`. Use this as the exhaustive Preact migration checklist. Verify exact APIs in the installed source before assuming another v9 beta has the same surface.
+Read `@tanstack/table-core#migrate-v8-to-v9`, `getting-started`, and `table-state`. Use this as the exhaustive Preact migration checklist. Verify exact APIs in the installed declarations before assuming another v9 beta has the same surface.
 
 Framework prerequisite: Preact 10 or newer (`preact >=10`).
 
@@ -61,7 +61,9 @@ V8 did not have a first-party Preact adapter; many Preact apps used `@tanstack/r
 | Table/factory `sortingFns`, `filterFns`, `aggregationFns` | `sortFns`, `filterFns`, `aggregationFns` slots in `tableFeatures()` |
 | Early-beta `rowModels: { ... }`                           | Direct named slots in `tableFeatures()`                             |
 
-Register each prerequisite feature before its row-model slot. Stock features are `columnFilteringFeature`, `globalFilteringFeature`, `rowSortingFeature`, `rowPaginationFeature`, `rowSelectionFeature`, `rowExpandingFeature`, `rowPinningFeature`, `columnPinningFeature`, `columnVisibilityFeature`, `columnOrderingFeature`, `columnSizingFeature`, `columnResizingFeature`, `columnGroupingFeature`, and `columnFacetingFeature`.
+In the registry slots, register individually imported built-ins (`filterFn_includesString`, `sortFn_alphanumeric`, `aggregationFn_sum`, and so on) under their conventional keys alongside custom functions; the full `filterFns`/`sortFns`/`aggregationFns` registry objects still work but bundle every built-in.
+
+Register each prerequisite feature before its row-model slot. Stock features are `columnFilteringFeature`, `globalFilteringFeature`, `rowSortingFeature`, `rowPaginationFeature`, `rowSelectionFeature`, `rowExpandingFeature`, `rowPinningFeature`, `columnPinningFeature`, `columnVisibilityFeature`, `columnOrderingFeature`, `columnSizingFeature`, `columnResizingFeature`, `rowAggregationFeature`, `columnGroupingFeature`, and `columnFacetingFeature`. Aggregation is independent from grouping: register `rowAggregationFeature` for aggregation APIs and add `columnGroupingFeature` only for grouped rows.
 
 ### Preact state and subscriptions
 
@@ -188,4 +190,4 @@ All other underscore-prefixed internals are removed. `getIsSomeRowsSelected()` a
 
 ## API discovery
 
-Inspect `node_modules/@tanstack/preact-table/src/index.ts` and `node_modules/@tanstack/table-core/src/index.ts`. Do not copy React adapter APIs merely because the v8 app used `preact/compat`.
+Inspect `node_modules/@tanstack/preact-table/dist/index.d.ts` and `node_modules/@tanstack/table-core/dist/index.d.ts`. Do not copy React adapter APIs merely because the v8 app used `preact/compat`.

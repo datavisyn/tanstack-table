@@ -172,6 +172,16 @@ describe('table_setPageIndex', () => {
       getUpdaterResult(onPaginationChange, getDefaultPaginationState()),
     ).toEqual({ pageIndex: 99, pageSize: 10 })
   })
+
+  it('keeps pre-pagination display indexes on the current page', () => {
+    const table = makeTable(DEFAULT_ROW_COUNT, {
+      initialState: { pagination: { pageIndex: 2, pageSize: 10 } },
+    })
+
+    expect(
+      table.getRowModel().rows.map((row) => row.getDisplayIndex()),
+    ).toEqual([20, 21, 22, 23, 24])
+  })
 })
 
 describe('table_resetPageIndex', () => {
@@ -427,6 +437,19 @@ describe('table_autoResetPageIndex', () => {
   it('should reset the page index for client-side pagination', () => {
     const table = makeTable(25, {
       initialState: { pagination: { pageIndex: 0, pageSize: 10 } },
+    })
+
+    table.setPageIndex(2)
+    expect(table.atoms.pagination.get().pageIndex).toBe(2)
+
+    table_autoResetPageIndex(table)
+
+    expect(table.atoms.pagination.get().pageIndex).toBe(0)
+  })
+
+  it('should reset to the first page instead of the initial page index', () => {
+    const table = makeTable(25, {
+      initialState: { pagination: { pageIndex: 1, pageSize: 10 } },
     })
 
     table.setPageIndex(2)

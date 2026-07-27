@@ -7,6 +7,8 @@ import type {
 import type { CellContext } from '../core/cells/coreCellsFeature.types'
 import type { HeaderContext } from '../core/headers/coreHeadersFeature.types'
 import type { ColumnDef_ColumnFiltering } from '../features/column-filtering/columnFilteringFeature.types'
+import type { ColumnDef_RowAggregation } from '../features/row-aggregation/rowAggregationFeature.types'
+import type { ColumnDef_CellSelection } from '../features/cell-selection/cellSelectionFeature.types'
 import type { ColumnDef_ColumnGrouping } from '../features/column-grouping/columnGroupingFeature.types'
 import type { ColumnDef_ColumnPinning } from '../features/column-pinning/columnPinningFeature.types'
 import type { ColumnDef_ColumnResizing } from '../features/column-resizing/columnResizingFeature.types'
@@ -132,14 +134,16 @@ export interface ColumnDef_FeatureMap<
   in out TData extends RowData,
   TValue extends CellData,
 > {
-  columnVisibilityFeature: ColumnDef_ColumnVisibility
-  columnPinningFeature: ColumnDef_ColumnPinning
+  cellSelectionFeature: ColumnDef_CellSelection
   columnFilteringFeature: ColumnDef_ColumnFiltering<TFeatures, TData>
-  globalFilteringFeature: ColumnDef_GlobalFiltering
-  rowSortingFeature: ColumnDef_RowSorting<TFeatures, TData>
-  columnGroupingFeature: ColumnDef_ColumnGrouping<TFeatures, TData, TValue>
-  columnSizingFeature: ColumnDef_ColumnSizing
+  columnGroupingFeature: ColumnDef_ColumnGrouping<TFeatures, TData>
+  columnPinningFeature: ColumnDef_ColumnPinning
   columnResizingFeature: ColumnDef_ColumnResizing
+  columnSizingFeature: ColumnDef_ColumnSizing
+  columnVisibilityFeature: ColumnDef_ColumnVisibility
+  globalFilteringFeature: ColumnDef_GlobalFiltering
+  rowAggregationFeature: ColumnDef_RowAggregation<TFeatures, TData, TValue>
+  rowSortingFeature: ColumnDef_RowSorting<TFeatures, TData>
 }
 
 export type ColumnDefBase<
@@ -158,12 +162,14 @@ export type ColumnDefBase_All<
   TValue extends CellData = CellData,
 > = ColumnDefBase_Core<TFeatures, TData, TValue> &
   Partial<
-    ColumnDef_ColumnVisibility &
+    ColumnDef_RowAggregation<TFeatures, TData, TValue> &
+      ColumnDef_CellSelection &
+      ColumnDef_ColumnVisibility &
       ColumnDef_ColumnPinning &
       ColumnDef_ColumnFiltering<TFeatures, TData> &
       ColumnDef_GlobalFiltering &
       ColumnDef_RowSorting<TFeatures, TData> &
-      ColumnDef_ColumnGrouping<TFeatures, TData, TValue> &
+      ColumnDef_ColumnGrouping<TFeatures, TData> &
       ColumnDef_ColumnSizing &
       ColumnDef_ColumnResizing
   >
@@ -251,5 +257,5 @@ export type ColumnDefResolved<
   TData extends RowData,
   TValue extends CellData = CellData,
 > = Partial<UnionToIntersection<ColumnDef<TFeatures, TData, TValue>>> & {
-  accessorKey?: string
+  accessorKey?: (string & {}) | keyof TData
 }

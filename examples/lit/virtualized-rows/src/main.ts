@@ -6,8 +6,11 @@ import {
   TableController,
   columnSizingFeature,
   createSortedRowModel,
+  rowSelectionFeature,
   rowSortingFeature,
-  sortFns,
+  sortFn_alphanumeric,
+  sortFn_datetime,
+  sortFn_text,
   tableFeatures,
 } from '@tanstack/lit-table'
 import { styleMap } from 'lit/directives/style-map.js'
@@ -18,12 +21,40 @@ import type { ColumnDef } from '@tanstack/lit-table'
 
 const features = tableFeatures({
   columnSizingFeature,
+  rowSelectionFeature,
   rowSortingFeature,
   sortedRowModel: createSortedRowModel(),
-  sortFns,
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    datetime: sortFn_datetime,
+    text: sortFn_text,
+  },
 })
 
 const columns: Array<ColumnDef<typeof features, Person>> = [
+  {
+    id: 'select',
+    header: ({ table }) => html`
+      <input
+        type="checkbox"
+        .checked=${table.getIsAllRowsSelected()}
+        .indeterminate=${table.getIsSomeRowsSelected()}
+        @change=${table.getToggleAllRowsSelectedHandler()}
+      />
+    `,
+    cell: ({ row }) => html`
+      <input
+        type="checkbox"
+        .checked=${row.getIsSelected()}
+        ?disabled=${!row.getCanSelect()}
+        .indeterminate=${row.getIsSomeSelected()}
+        @click=${row.getToggleSelectedHandler({
+          // selectChildren: false
+        })}
+      />
+    `,
+    size: 40,
+  },
   {
     accessorKey: 'id',
     header: 'ID',
@@ -92,8 +123,9 @@ class LitTableExample extends LitElement {
         features,
         columns,
         data: this._data,
+        getRowId: (row) => String(row.id),
       },
-      () => ({}), // selector - empty since we don't need any state
+      (state) => state.rowSelection,
     )
     const { rows } = table.getRowModel()
 
@@ -121,6 +153,10 @@ class LitTableExample extends LitElement {
           </button>
         </div>
         (${this._data.length.toLocaleString()} rows)
+        <p>Hold Shift while selecting rows to select or deselect a range.</p>
+        <p>
+          ${table.getSelectedRowIds().length.toLocaleString()} rows selected
+        </p>
         <div
           class="container"
           ${ref(this.tableContainerRef)}

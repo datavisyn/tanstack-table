@@ -9,7 +9,7 @@ Defined in: [types/RowModelFns.ts:25](https://github.com/TanStack/table/blob/mai
 
 ## Extends
 
-- `Partial`\<[`RowModelFns_ColumnFiltering`](RowModelFns_ColumnFiltering.md)\<`TFeatures`, `TData`\> & [`RowModelFns_ColumnGrouping`](RowModelFns_ColumnGrouping.md)\<`TFeatures`, `TData`\> & [`RowModelFns_RowSorting`](RowModelFns_RowSorting.md)\<`TFeatures`, `TData`\>\>
+- `Partial`\<[`RowModelFns_ColumnFiltering`](RowModelFns_ColumnFiltering.md)\<`TFeatures`, `TData`\> & [`RowModelFns_RowAggregation`](RowModelFns_RowAggregation.md)\<`TFeatures`, `TData`\> & [`RowModelFns_RowSorting`](RowModelFns_RowSorting.md)\<`TFeatures`, `TData`\>\>
 
 ## Type Parameters
 
@@ -26,10 +26,10 @@ Defined in: [types/RowModelFns.ts:25](https://github.com/TanStack/table/blob/mai
 ### aggregationFns?
 
 ```ts
-optional aggregationFns: Record<string, AggregationFn<TFeatures, TData>>;
+optional aggregationFns: Record<string, AggregationFnDef<TFeatures, TData, any, any>>;
 ```
 
-Defined in: [features/column-grouping/columnGroupingFeature.types.ts:24](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/column-grouping/columnGroupingFeature.types.ts#L24)
+Defined in: [features/row-aggregation/rowAggregationFeature.types.ts:99](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/row-aggregation/rowAggregationFeature.types.ts#L99)
 
 #### Inherited from
 
@@ -45,7 +45,7 @@ Partial.aggregationFns
 optional filterFns: Record<string, FilterFn<TFeatures, TData>>;
 ```
 
-Defined in: [features/column-filtering/columnFilteringFeature.types.ts:56](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/column-filtering/columnFilteringFeature.types.ts#L56)
+Defined in: [features/column-filtering/columnFilteringFeature.types.ts:57](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/column-filtering/columnFilteringFeature.types.ts#L57)
 
 #### Inherited from
 
@@ -61,7 +61,7 @@ Partial.filterFns
 optional sortFns: Record<string, SortFn<TFeatures, TData>>;
 ```
 
-Defined in: [features/row-sorting/rowSortingFeature.types.ts:24](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/row-sorting/rowSortingFeature.types.ts#L24)
+Defined in: [features/row-sorting/rowSortingFeature.types.ts:29](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/row-sorting/rowSortingFeature.types.ts#L29)
 
 #### Inherited from
 

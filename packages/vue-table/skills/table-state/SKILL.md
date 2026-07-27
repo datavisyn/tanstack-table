@@ -6,7 +6,7 @@ metadata:
   type: framework
   library: '@tanstack/vue-table'
   framework: vue
-  library_version: '9.0.0-beta.40'
+  library_version: '9.0.0-beta.58'
 requires:
   - '@tanstack/table-core#core'
   - getting-started
@@ -188,4 +188,4 @@ Source: `packages/vue-table/src/useTable.ts`
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/vue-table/src/useTable.ts` and `reactivity.ts`; inspect the exact state slice in the installed core feature directory.
+Inspect `node_modules/@tanstack/vue-table/dist/useTable.d.ts` and `reactivity.d.ts`; inspect the exact state slice in the installed core feature directory.

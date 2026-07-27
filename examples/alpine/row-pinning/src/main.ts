@@ -6,7 +6,8 @@ import {
   createFilteredRowModel,
   createPaginatedRowModel,
   createTable,
-  filterFns,
+  filterFn_inNumberRange,
+  filterFn_includesString,
   rowExpandingFeature,
   rowPaginationFeature,
   rowPinningFeature,
@@ -25,7 +26,10 @@ const features = tableFeatures({
   filteredRowModel: createFilteredRowModel(),
   expandedRowModel: createExpandedRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
-  filterFns,
+  filterFns: {
+    includesString: filterFn_includesString,
+    inNumberRange: filterFn_inNumberRange,
+  },
 })
 
 // The `pin` column (pin buttons) and the `firstName` cell (expander + value)
@@ -88,7 +92,6 @@ Alpine.data('table', () => {
   const local = Alpine.reactive({ data: makeData(1_000, 2, 2) })
 
   const table = createTable({
-    debugTable: true,
     features,
     columns,
     get data() {
@@ -99,6 +102,11 @@ Alpine.data('table', () => {
     },
     getSubRows: (row) => row.subRows,
     keepPinnedRows: true,
+    // atoms: { rowPinning: rowPinningAtom }, // preferred: own pinning state with an external atom
+    // state: { rowPinning }, // classic controlled state; pair with onRowPinningChange
+    // onRowPinningChange: setRowPinning,
+    // enableRowPinning: row => row.original.age > 18, // allow pinning only for matching rows; default true
+    debugTable: true,
     debugAll: true,
   })
 

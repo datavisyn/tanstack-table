@@ -5,4 +5,6 @@ title: AggregationFns
 
 # Interface: AggregationFns
 
-Defined in: [features/column-grouping/columnGroupingFeature.types.ts:27](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/column-grouping/columnGroupingFeature.types.ts#L27)
+Defined in: [features/row-aggregation/rowAggregationFeature.types.ts:11](https://github.com/TanStack/table/blob/main/packages/table-core/src/features/row-aggregation/rowAggregationFeature.types.ts#L11)
+
+Declaration-merging fallback for named aggregation definitions.

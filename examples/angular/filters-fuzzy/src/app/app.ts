@@ -7,13 +7,13 @@ import {
   createFilteredRowModel,
   createPaginatedRowModel,
   createSortedRowModel,
-  filterFns,
   globalFilteringFeature,
   injectTable,
   metaHelper,
   rowPaginationFeature,
   rowSortingFeature,
-  sortFns,
+  sortFn_alphanumeric,
+  sortFn_text,
   tableFeatures,
 } from '@tanstack/angular-table'
 import { DebouncedInput } from './debounced-input/debounced-input'
@@ -47,7 +47,7 @@ const fuzzySort: SortFn<FuzzyFeatures, any> = (rowA, rowB, columnId) => {
       rowB.columnFiltersMeta[columnId].itemRank!,
     )
   }
-  return dir === 0 ? sortFns.alphanumeric(rowA, rowB, columnId) : dir
+  return dir === 0 ? sortFn_alphanumeric(rowA, rowB, columnId) : dir
 }
 
 const features = tableFeatures({
@@ -58,8 +58,12 @@ const features = tableFeatures({
   filteredRowModel: createFilteredRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
   sortedRowModel: createSortedRowModel(),
-  filterFns: { ...filterFns, fuzzy: fuzzyFilter },
-  sortFns: { ...sortFns, fuzzy: fuzzySort },
+  filterFns: { fuzzy: fuzzyFilter },
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    fuzzy: fuzzySort,
+    text: sortFn_text,
+  },
   filterMeta: metaHelper<FuzzyFilterMeta>(),
 })
 const columnHelper = createColumnHelper<typeof features, Person>()
@@ -97,6 +101,18 @@ export class App {
     columns,
     data: this.data(),
     globalFilterFn: 'fuzzy',
+    // initialState: { columnFilters: [{ id: 'firstName', value: 'Jane' }], globalFilter: 'Jane' }, // set filters once
+    // atoms: { columnFilters: columnFiltersAtom, globalFilter: globalFilterAtom }, // preferred external ownership
+    // state: { columnFilters, globalFilter }, // classic controlled state; pair with the callbacks below
+    // onColumnFiltersChange: setColumnFilters,
+    // onGlobalFilterChange: setGlobalFilter,
+    // enableFilters: false, // disable all column and global filtering; default true
+    // enableColumnFilters: false, // disable per-column filters; default true
+    // filterFromLeafRows: true, // keep parents whose descendants match; default filters from parents down
+    // maxLeafRowFilterDepth: 1, // only filter through this nested-row depth; default 100
+    // manualFiltering: true, // pass data that is already filtered, for example from a server
+    // enableGlobalFilter: false, // disable the global filter input; default true
+    // getColumnCanGlobalFilter: column => column.id !== 'status', // opt a column out of global filtering
     debugTable: true,
   }))
 

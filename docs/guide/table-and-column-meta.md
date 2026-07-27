@@ -125,6 +125,24 @@ readonly table = injectTable(() => ({
 table.options.meta?.updateData(rowIndex, columnId, newValue)
 ```
 
+# Ember
+
+```ts
+table = useTable(() => ({
+  features,
+  columns,
+  data: this.data,
+  meta: {
+    updateData: (rowIndex, columnId, value) => {
+      // ...
+    },
+  },
+}))
+
+// ...later, anywhere the table is available (e.g. inside a cell component)
+table.options.meta?.updateData(rowIndex, columnId, newValue)
+```
+
 # Lit
 
 ```ts
@@ -315,6 +333,22 @@ const features = tableFeatures({
 })
 ```
 
+# Ember
+
+```ts
+import {
+  metaHelper,
+  rowSortingFeature,
+  tableFeatures,
+} from '@tanstack/ember-table'
+
+const features = tableFeatures({
+  rowSortingFeature,
+  tableMeta: metaHelper<MyTableMeta>(),
+  columnMeta: metaHelper<MyColumnMeta>(),
+})
+```
+
 # Lit
 
 ```ts
@@ -418,8 +452,7 @@ import {
   createFilteredRowModel,
   createSortedRowModel,
   createPaginatedRowModel,
-  filterFns,
-  sortFns,
+  sortFn_alphanumeric,
 } from '@tanstack/react-table'
 import type {
   FilterFn,
@@ -457,10 +490,10 @@ const fuzzySort: SortFn<FuzzyFeatures, Person> = (rowA, rowB, columnId) => {
       rowB.columnFiltersMeta[columnId]?.itemRank!,
     )
   }
-  return dir === 0 ? sortingFns.alphanumeric(rowA, rowB, columnId) : dir
+  return dir === 0 ? sortFn_alphanumeric(rowA, rowB, columnId) : dir
 }
 
-// 4. Register everything on tableFeatures() — including the filterMeta slot
+// 4. Register everything on tableFeatures(), including the filterMeta slot
 const features = tableFeatures({
   columnFilteringFeature,
   globalFilteringFeature,
@@ -469,11 +502,13 @@ const features = tableFeatures({
   filteredRowModel: createFilteredRowModel(),
   sortedRowModel: createSortedRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
-  filterFns: { ...filterFns, fuzzy: fuzzyFilter },
-  sortFns: { ...sortFns, fuzzy: fuzzySort },
+  filterFns: { fuzzy: fuzzyFilter },
+  sortFns: { fuzzy: fuzzySort },
   filterMeta: metaHelper<FuzzyFilterMeta>(),
 })
 ```
+
+> Note: the `filterFns` and `sortFns` slots above register only the functions this table uses. The full built-in registries (`filterFns`, `sortFns`, `aggregationFns` exported from the package) can still be spread into these slots, but they are deprecated because they put every built-in function in your bundle. Import individual functions such as `sortFn_alphanumeric` instead, or pass functions directly in your column definitions.
 
 Now `columnFiltersMeta` on every row is typed as `FuzzyFilterMeta` for tables built from this `features` object. The `filterMeta` slot is, like `tableMeta` and `columnMeta`, a phantom type-only entry: `metaHelper<FuzzyFilterMeta>()` returns `{}` at runtime and is stripped from the registered features.
 
@@ -591,6 +626,26 @@ declare module '@tanstack/svelte-table' {
 import type { CellData, RowData, TableFeatures } from '@tanstack/angular-table'
 
 declare module '@tanstack/angular-table' {
+  interface TableMeta<TFeatures extends TableFeatures, TData extends RowData> {
+    updateData: (rowIndex: number, columnId: string, value: unknown) => void
+  }
+
+  interface ColumnMeta<
+    TFeatures extends TableFeatures,
+    TData extends RowData,
+    TValue extends CellData = CellData,
+  > {
+    filterVariant?: 'text' | 'range' | 'select'
+  }
+}
+```
+
+# Ember
+
+```ts
+import type { CellData, RowData, TableFeatures } from '@tanstack/ember-table'
+
+declare module '@tanstack/ember-table' {
   interface TableMeta<TFeatures extends TableFeatures, TData extends RowData> {
     updateData: (rowIndex: number, columnId: string, value: unknown) => void
   }

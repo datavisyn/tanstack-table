@@ -9,12 +9,14 @@ import {
   createFilteredRowModel,
   createPaginatedRowModel,
   createSortedRowModel,
-  filterFns,
+  filterFn_inNumberRange,
+  filterFn_includesString,
   rowExpandingFeature,
   rowPaginationFeature,
   rowSelectionFeature,
   rowSortingFeature,
-  sortFns,
+  sortFn_alphanumeric,
+  sortFn_text,
   tableFeatures,
 } from '@tanstack/lit-table'
 import { makeData } from './makeData'
@@ -31,21 +33,27 @@ const features = tableFeatures({
   filteredRowModel: createFilteredRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
   sortedRowModel: createSortedRowModel(),
-  filterFns,
-  sortFns,
+  filterFns: {
+    includesString: filterFn_includesString,
+    inNumberRange: filterFn_inNumberRange,
+  },
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    text: sortFn_text,
+  },
 })
 
 function indeterminateCheckbox(options: {
   checked: boolean
   indeterminate: boolean
-  onChange: (e: Event) => void
+  onClick: (e: Event) => void
 }) {
   return html`
     <input
       type="checkbox"
       .checked="${options.checked}"
       .indeterminate="${!options.checked && options.indeterminate}"
-      @change="${options.onChange}"
+      @click="${options.onClick}"
       style="cursor: pointer"
     />
   `
@@ -108,12 +116,17 @@ function renderFilter(
 
 const columns: Array<ColumnDef<typeof features, Person>> = [
   {
+    id: 'rowNumber',
+    header: '#',
+    cell: ({ row }) => row.getDisplayIndex() + 1,
+  },
+  {
     accessorKey: 'firstName',
     header: ({ table }) => html`
       ${indeterminateCheckbox({
         checked: table.getIsAllRowsSelected(),
         indeterminate: table.getIsSomeRowsSelected(),
-        onChange: table.getToggleAllRowsSelectedHandler(),
+        onClick: table.getToggleAllRowsSelectedHandler(),
       })}
       <button @click="${table.getToggleAllRowsExpandedHandler()}">
         ${table.getIsAllRowsExpanded() ? '👇' : '👉'}
@@ -127,7 +140,9 @@ const columns: Array<ColumnDef<typeof features, Person>> = [
             row.getIsSelected() ||
             (row.getCanSelectSubRows() && row.getIsAllSubRowsSelected()),
           indeterminate: row.getIsSomeSelected(),
-          onChange: row.getToggleSelectedHandler(),
+          onClick: row.getToggleSelectedHandler({
+            // selectChildren: false
+          }),
         })}
         ${row.getCanExpand()
           ? html`<button
@@ -185,6 +200,19 @@ class LitTableExample extends LitElement {
         columns,
         data: this._data,
         getSubRows: (row) => row.subRows,
+        // initialState: { expanded: { '0': true } }, // expand rows on first render
+        // atoms: { expanded: expandedAtom }, // preferred: own expanded state with an external atom
+        // state: { expanded }, // classic controlled state; pair with onExpandedChange
+        // onExpandedChange: setExpanded,
+        // enableExpanding: false, // disable expanding for every row; default true
+        // getRowCanExpand: row => row.original.subRows?.length > 0, // override which rows can expand
+        // getIsRowExpanded: row => row.id === '0', // override whether a row is expanded
+        // manualExpanding: true, // pass data that is already expanded, for example from a server
+        // paginateExpandedRows: false, // keep expanded children on their parent page; default true
+        // autoResetExpanded: false, // keep expanded rows after page-altering changes; default true
+        // autoResetAll: false, // turn off every feature's automatic reset, including expansion
+        // filterFromLeafRows: true, // with filtering, keep parents whose descendants match
+        // maxLeafRowFilterDepth: 0, // with filtering, only filter root rows
         debugTable: true,
       },
       (state) => ({

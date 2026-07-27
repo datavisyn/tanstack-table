@@ -7,7 +7,8 @@ import {
   createExpandedRowModel,
   createFilteredRowModel,
   createPaginatedRowModel,
-  filterFns,
+  filterFn_inNumberRange,
+  filterFn_includesString,
   rowExpandingFeature,
   rowPaginationFeature,
   rowPinningFeature,
@@ -35,7 +36,10 @@ const features = tableFeatures({
   filteredRowModel: createFilteredRowModel(),
   expandedRowModel: createExpandedRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
-  filterFns,
+  filterFns: {
+    includesString: filterFn_includesString,
+    inNumberRange: filterFn_inNumberRange,
+  },
 })
 
 const columnHelper = createColumnHelper<typeof features, Person>()
@@ -153,7 +157,6 @@ function App() {
 
   const table = useTable(
     {
-      debugTable: true,
       features,
       columns,
       data,
@@ -166,6 +169,9 @@ function App() {
       onRowPinningChange: setRowPinning,
       getSubRows: (row) => row.subRows,
       keepPinnedRows,
+      // atoms: { rowPinning: rowPinningAtom }, // preferred: own pinning state with an external atom
+      // enableRowPinning: row => row.original.age > 18, // allow pinning only for matching rows; default true
+      debugTable: true,
       debugAll: true,
     },
     (state) => state, // default selector

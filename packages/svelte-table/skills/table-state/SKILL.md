@@ -6,7 +6,7 @@ metadata:
   type: framework
   library: '@tanstack/svelte-table'
   framework: svelte
-  library_version: '9.0.0-beta.38'
+  library_version: '9.0.0-beta.58'
 requires:
   - '@tanstack/table-core#core'
   - getting-started
@@ -202,4 +202,4 @@ Source: `docs/framework/svelte/guide/pagination.md`
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/svelte-table/src/createTable.svelte.ts`, `createTableState.svelte.ts`, and `subscribe.ts`; inspect registered state slices in the matching core feature source.
+Inspect `node_modules/@tanstack/svelte-table/dist/createTable.svelte.d.ts`, `createTableState.svelte.d.ts`, and `subscribe.d.ts`; inspect registered state slices in the matching core feature source.

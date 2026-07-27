@@ -6,7 +6,6 @@ import {
   createExpandedRowModel,
   createFilteredRowModel,
   createPaginatedRowModel,
-  filterFns,
   injectTable,
   isFunction,
   rowExpandingFeature,
@@ -32,7 +31,6 @@ const features = tableFeatures({
   filteredRowModel: createFilteredRowModel(),
   expandedRowModel: createExpandedRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
-  filterFns,
 })
 const columns: Array<ColumnDef<typeof features, Person>> = [
   {
@@ -72,7 +70,6 @@ export class App {
   readonly includeParentRows = signal(false)
 
   readonly table = injectTable<typeof features, Person>(() => ({
-    debugTable: true,
     features,
     columns,
     data: this.data(),
@@ -88,6 +85,9 @@ export class App {
         : this.rowPinning.set(updater),
     getSubRows: (row) => row.subRows,
     keepPinnedRows: this.keepPinnedRows(),
+    // atoms: { rowPinning: rowPinningAtom }, // preferred: own pinning state with an external atom
+    // enableRowPinning: row => row.original.age > 18, // allow pinning only for matching rows; default true
+    debugTable: true,
     debugAll: true,
   }))
 

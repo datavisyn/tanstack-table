@@ -1,5 +1,5 @@
-import { reSplitAlphaNumeric, sortFn_basic } from '../../fns/sortFns'
 import { cloneState, isFunction } from '../../utils'
+import { reSplitAlphaNumeric, sortFn_basic } from './sortFns'
 import type { CellData, RowData, Updater } from '../../types/type-utils'
 import type { TableFeatures } from '../../types/TableFeatures'
 import type { Table_Internal } from '../../types/Table'
@@ -91,30 +91,50 @@ export function column_getAutoSortFn<
 
   const firstRows = column.table.getFilteredRowModel().flatRows.slice(0, 10)
 
+  let sortFnName: string | undefined
   let isString = false
 
   for (let i = 0; i < firstRows.length; i++) {
     const value = firstRows[i]!.getValue(column.id)
 
     if (Object.prototype.toString.call(value) === '[object Date]') {
-      if (sortFns?.datetime) {
-        return sortFns.datetime
-      }
+      sortFnName = 'datetime'
+      break
     }
 
     if (typeof value === 'string') {
       isString = true
 
       if (value.split(reSplitAlphaNumeric).length > 1) {
-        if (sortFns?.alphanumeric) {
-          return sortFns.alphanumeric
-        }
+        sortFnName = 'alphanumeric'
+        break
       }
     }
   }
 
-  if (isString) {
-    return sortFns?.text ?? sortFn_basic
+  if (!sortFnName && isString) {
+    sortFnName = 'text'
+  }
+
+  if (sortFnName) {
+    let sortFn = sortFns?.[sortFnName]
+
+    if (!sortFn) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(
+          `sortFn '${sortFnName}' (auto) for column '${column.id}' is not registered`,
+        )
+      }
+
+      // String columns degrade to a registered text sort before basic
+      if (sortFnName === 'alphanumeric') {
+        sortFn = sortFns?.text
+      }
+    }
+
+    if (sortFn) {
+      return sortFn
+    }
   }
 
   return sortFn_basic
@@ -167,11 +187,23 @@ export function column_getSortFn<
   const sortFns: Record<string, SortFn<TFeatures, TData>> | undefined =
     column.table._rowModelFns.sortFns
 
-  return isFunction(column.columnDef.sortFn)
-    ? column.columnDef.sortFn
-    : column.columnDef.sortFn === 'auto'
-      ? column_getAutoSortFn(column)
-      : (sortFns?.[column.columnDef.sortFn as string] ?? sortFn_basic)
+  if (isFunction(column.columnDef.sortFn)) {
+    return column.columnDef.sortFn
+  }
+
+  if (column.columnDef.sortFn === 'auto') {
+    return column_getAutoSortFn(column)
+  }
+
+  const sortFn = sortFns?.[column.columnDef.sortFn as string]
+
+  if (process.env.NODE_ENV === 'development' && !sortFn) {
+    console.warn(
+      `sortFn '${String(column.columnDef.sortFn)}' for column '${column.id}' is not registered`,
+    )
+  }
+
+  return sortFn ?? sortFn_basic
 }
 
 /**
@@ -450,9 +482,8 @@ export function column_clearSorting<
 /**
  * Creates a header event handler that toggles this column's sorting.
  *
- * The handler ignores events when the column cannot sort, persists React-style
- * synthetic events when present, and asks `options.isMultiSortEvent` whether
- * the event should add to a multi-sort.
+ * The handler ignores events when the column cannot sort, and asks
+ * `options.isMultiSortEvent` whether the event should add to a multi-sort.
  *
  * @example
  * ```ts
@@ -468,7 +499,6 @@ export function column_getToggleSortingHandler<
 
   return (e: unknown) => {
     if (!canSort) return
-    ;(e as any).persist?.()
     column_toggleSorting(
       column,
 

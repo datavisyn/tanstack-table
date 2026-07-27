@@ -6,7 +6,7 @@ metadata:
   {
     type: framework,
     library: '@tanstack/preact-table',
-    library_version: '9.0.0-beta.38',
+    library_version: '9.0.0-beta.58',
     framework: preact,
   }
 requires: ['@tanstack/table-core#core', getting-started, table-state]
@@ -173,4 +173,4 @@ Source: `packages/preact-table/src/createTableHook.tsx`
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/preact-table/src/createTableHook.tsx` and `createTableHookContexts.tsx` for exact return names, provider props, registries, and scoped context types.
+Inspect `node_modules/@tanstack/preact-table/dist/createTableHook.d.ts` and `createTableHookContexts.d.ts` for exact return names, provider props, registries, and scoped context types.

@@ -6,7 +6,7 @@ metadata:
   type: lifecycle
   library: '@tanstack/svelte-table'
   framework: svelte
-  library_version: '9.0.0-beta.38'
+  library_version: '9.0.0-beta.58'
 requires:
   - '@tanstack/table-core#migrate-v8-to-v9'
   - getting-started
@@ -34,7 +34,7 @@ Framework prerequisite: Svelte 5 (`svelte ^5.0.0`).
 const features = tableFeatures({
   rowSortingFeature,
   sortedRowModel: createSortedRowModel(),
-  sortFns,
+  sortFns: { alphanumeric: sortFn_alphanumeric },
 })
 
 const table = createTable({
@@ -58,7 +58,7 @@ const table = createTable({
 | `filterFns` / `aggregationFns` table options | Same-named feature slots                                   |
 | Top-level `onStateChange`                    | Per-slice callbacks, external atoms, or store subscription |
 
-Available feature imports are `columnFilteringFeature`, `globalFilteringFeature`, `rowSortingFeature`, `rowPaginationFeature`, `rowSelectionFeature`, `rowExpandingFeature`, `rowPinningFeature`, `columnPinningFeature`, `columnVisibilityFeature`, `columnOrderingFeature`, `columnSizingFeature`, `columnResizingFeature`, `columnGroupingFeature`, and `columnFacetingFeature`. An API does not exist unless its feature is registered. Put a feature before its dependent slot in the same `tableFeatures` call.
+Available feature imports are `columnFilteringFeature`, `globalFilteringFeature`, `rowSortingFeature`, `rowPaginationFeature`, `rowSelectionFeature`, `rowExpandingFeature`, `rowPinningFeature`, `columnPinningFeature`, `columnVisibilityFeature`, `columnOrderingFeature`, `columnSizingFeature`, `columnResizingFeature`, `rowAggregationFeature`, `columnGroupingFeature`, and `columnFacetingFeature`. An API does not exist unless its feature is registered. Put a feature before its dependent slot in the same `tableFeatures` call. Aggregation is independent from grouping: register `rowAggregationFeature` for aggregation APIs and add `columnGroupingFeature` only for grouped rows.
 
 ### Row-model mapping
 
@@ -73,7 +73,7 @@ Available feature imports are `columnFilteringFeature`, `globalFilteringFeature`
 | `getFacetedMinMaxValues()` | `facetedMinMaxValues: createFacetedMinMaxValues()`                  |
 | `getFacetedUniqueValues()` | `facetedUniqueValues: createFacetedUniqueValues()`                  |
 
-Factories take no arguments. Register `filterFns`, `sortFns`, and `aggregationFns` as sibling feature slots.
+Factories take no arguments. Register `filterFns`, `sortFns`, and `aggregationFns` as sibling feature slots holding individually imported built-ins (`filterFn_includesString`, `sortFn_alphanumeric`, `aggregationFn_sum`) under their conventional keys. The full registry objects still work but bundle every built-in.
 
 ## Svelte State Migration
 
@@ -192,4 +192,4 @@ Keep calls bound to row/cell/column/header instances; shallow copies do not cont
 
 ## API Discovery
 
-Verify the installed target in `node_modules/@tanstack/svelte-table/src/index.ts` and its adapter sources. Verify feature slots and exact beta APIs in `node_modules/@tanstack/table-core/src`; do not reconstruct v9 APIs from v8 memory.
+Verify the installed target in `node_modules/@tanstack/svelte-table/dist/index.d.ts` and its adapter sources. Verify feature slots and exact beta APIs in `node_modules/@tanstack/table-core/dist/`; do not reconstruct v9 APIs from v8 memory.

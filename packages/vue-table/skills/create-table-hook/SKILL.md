@@ -6,7 +6,7 @@ metadata:
   type: framework
   library: '@tanstack/vue-table'
   framework: vue
-  library_version: '9.0.0-beta.40'
+  library_version: '9.0.0-beta.58'
 requires:
   - '@tanstack/table-core#core'
   - getting-started
@@ -143,4 +143,4 @@ Source: `packages/vue-table/src/useTable.ts`
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/vue-table/src/createTableHook.ts` for the returned helpers, wrapper props, registry types, and context contracts.
+Inspect `node_modules/@tanstack/vue-table/dist/createTableHook.d.ts` for the returned helpers, wrapper props, registry types, and context contracts.

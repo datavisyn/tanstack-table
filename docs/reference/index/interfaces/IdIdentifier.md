@@ -5,7 +5,7 @@ title: IdIdentifier
 
 # Interface: IdIdentifier\<TFeatures, TData, TValue\>
 
-Defined in: [types/ColumnDef.ts:82](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L82)
+Defined in: [types/ColumnDef.ts:84](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L84)
 
 ## Type Parameters
 
@@ -29,7 +29,7 @@ Defined in: [types/ColumnDef.ts:82](https://github.com/TanStack/table/blob/main/
 optional header: ColumnDefTemplate<HeaderContext<TFeatures, TData, TValue>>;
 ```
 
-Defined in: [types/ColumnDef.ts:94](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L94)
+Defined in: [types/ColumnDef.ts:96](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L96)
 
 Header text or template used to render this column's header.
 
@@ -41,6 +41,6 @@ Header text or template used to render this column's header.
 id: string;
 ```
 
-Defined in: [types/ColumnDef.ts:90](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L90)
+Defined in: [types/ColumnDef.ts:92](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L92)
 
 Explicit stable column id.

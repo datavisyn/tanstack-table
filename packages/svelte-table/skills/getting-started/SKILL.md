@@ -6,7 +6,7 @@ metadata:
   type: framework
   library: '@tanstack/svelte-table'
   framework: svelte
-  library_version: '9.0.0-beta.38'
+  library_version: '9.0.0-beta.58'
 requires:
   - '@tanstack/table-core#core'
   - '@tanstack/table-core#table-features'
@@ -77,18 +77,18 @@ Keep features and columns outside reactive work; expose changing rune values thr
 import {
   createSortedRowModel,
   rowSortingFeature,
-  sortFns,
+  sortFn_alphanumeric,
   tableFeatures,
 } from '@tanstack/svelte-table'
 
 export const features = tableFeatures({
   rowSortingFeature,
   sortedRowModel: createSortedRowModel(),
-  sortFns,
+  sortFns: { alphanumeric: sortFn_alphanumeric },
 })
 ```
 
-The row-model slot follows its prerequisite feature in the same call.
+The row-model slot follows its prerequisite feature in the same call. Import individual `sortFn_*` built-ins and register only the ones your columns reference; the full `sortFns` registry object still works but bundles every built-in.
 
 ### Treat markup and styles as application code
 
@@ -169,4 +169,4 @@ Source: `docs/framework/svelte/guide/migrating.md`
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/svelte-table/src/index.ts`, then the exported implementation. Inspect core and feature APIs through `node_modules/@tanstack/table-core/src/index.ts` and `src/features/<feature>/`.
+Inspect `node_modules/@tanstack/svelte-table/dist/index.d.ts`, then the exported implementation. Inspect core and feature APIs through `node_modules/@tanstack/table-core/dist/index.d.ts` and `dist/features/<feature>/`.

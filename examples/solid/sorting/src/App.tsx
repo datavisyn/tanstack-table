@@ -3,7 +3,8 @@ import {
   createSortedRowModel,
   createTable,
   rowSortingFeature,
-  sortFns,
+  sortFn_alphanumeric,
+  sortFn_text,
   tableFeatures,
 } from '@tanstack/solid-table'
 import { For, Show, createSignal } from 'solid-js'
@@ -14,7 +15,10 @@ import type { Person } from './makeData'
 const features = tableFeatures({
   rowSortingFeature,
   sortedRowModel: createSortedRowModel(),
-  sortFns,
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    text: sortFn_text,
+  },
 })
 
 function App() {
@@ -23,6 +27,11 @@ function App() {
   const stressTest = () => setData(makeData(1_000_000))
 
   const columns: Array<ColumnDef<typeof features, Person>> = [
+    {
+      id: 'rowNumber',
+      header: '#',
+      cell: ({ row }) => row.getDisplayIndex() + 1,
+    },
     {
       header: 'Name',
       footer: (props) => props.column.id,
@@ -86,6 +95,19 @@ function App() {
       return data()
     },
     columns,
+    // initialState: { sorting: [{ id: 'firstName', desc: false }] }, // set the initial sort once
+    // atoms: { sorting: sortingAtom }, // preferred: own sorting state with an external atom
+    // state: { sorting }, // classic controlled state; pair with onSortingChange
+    // onSortingChange: setSorting,
+    // enableSorting: false, // disable sorting for every column; default true
+    // sortDescFirst: true, // start every sort cycle with descending order; inferred by column data by default
+    // enableSortingRemoval: false, // keep a sorted column sorted when toggling; default true
+    // enableMultiSort: false, // disable Shift-click multi-sorting; default true
+    // enableMultiRemove: false, // prevent a multi-sort toggle from removing a sorted column; default true
+    // isMultiSortEvent: () => true, // make every sort interaction a multi-sort; default requires Shift
+    // maxMultiSortColCount: 3, // limit multi-sorting to three columns; default Infinity
+    // manualSorting: true, // pass data that is already sorted, for example from a server
+    // autoResetPageIndex: false, // with pagination, keep the current page when sorting changes; default true
     debugTable: true,
   })
 

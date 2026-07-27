@@ -84,7 +84,7 @@ export function initTableWorker<
         // per group. Sync tables aggregate lazily (visible cells only), so
         // auto-aggregating every column would explode on high-cardinality
         // grouping for values nothing renders. Read the RAW column defs:
-        // columnGroupingFeature injects default aggregatedCell/aggregationFn
+        // rowAggregationFeature injects default aggregatedCell/aggregationFn
         // into every resolved columnDef, so the resolved defs can't tell
         // explicit from default.
         aggregateColumnIds = flattenColumnDefs(config.columns as Array<any>)
@@ -94,9 +94,9 @@ export function initTableWorker<
           .map(
             (def) =>
               def.id ??
-              (typeof def.accessorKey === 'string'
-                ? def.accessorKey.replaceAll('.', '_')
-                : undefined),
+              (def.accessorKey === undefined
+                ? undefined
+                : String(def.accessorKey).replaceAll('.', '_')),
           )
           .filter((id): id is string => id != null)
       } else {

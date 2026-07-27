@@ -6,7 +6,7 @@ metadata:
   {
     type: sub-skill,
     library: '@tanstack/table-core',
-    library_version: '9.0.0-beta.38',
+    library_version: '9.0.0-beta.58',
   }
 requires: ['core', 'table-features', 'client-vs-server', 'column-filtering']
 sources:
@@ -23,7 +23,7 @@ This skill builds on `core`, `table-features`, `client-vs-server`, and `column-f
 import {
   columnFilteringFeature,
   createFilteredRowModel,
-  filterFns,
+  filterFn_includesString,
   globalFilteringFeature,
   tableFeatures,
 } from '@tanstack/table-core'
@@ -32,7 +32,7 @@ export const features = tableFeatures({
   columnFilteringFeature,
   globalFilteringFeature,
   filteredRowModel: createFilteredRowModel(),
-  filterFns,
+  filterFns: { includesString: filterFn_includesString },
 })
 ```
 
@@ -81,4 +81,4 @@ Source: `docs/framework/react/guide/global-filtering.md#manual-server-side-globa
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/table-core/src/features/global-filtering/` plus `src/features/column-filtering/` for shared state and filter functions.
+Inspect `node_modules/@tanstack/table-core/dist/features/global-filtering/` plus `dist/features/column-filtering/` for shared state and filter functions.

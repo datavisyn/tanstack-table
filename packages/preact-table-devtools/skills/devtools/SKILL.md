@@ -6,7 +6,7 @@ metadata:
   type: framework
   library: '@tanstack/preact-table-devtools'
   framework: preact
-  library_version: '9.0.0-beta.40'
+  library_version: '9.0.0-beta.58'
 requires:
   - '@tanstack/table-core#core'
   - '@tanstack/table-devtools#devtools'
@@ -82,4 +82,4 @@ Source: TanStack/table:packages/preact-table-devtools/src/index.ts
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/preact-table-devtools/src/index.ts` and `useTanStackTableDevtools.ts`; do not copy React adapter imports.
+Inspect `node_modules/@tanstack/preact-table-devtools/dist/index.d.ts` and `useTanStackTableDevtools.d.ts`; do not copy React adapter imports.

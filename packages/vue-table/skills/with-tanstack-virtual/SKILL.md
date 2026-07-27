@@ -6,7 +6,7 @@ metadata:
   type: composition
   library: '@tanstack/vue-table'
   framework: vue
-  library_version: '9.0.0-beta.40'
+  library_version: '9.0.0-beta.58'
 requires:
   - '@tanstack/table-core#core'
   - getting-started
@@ -113,4 +113,4 @@ Source: `examples/vue/virtualized-columns/src/App.vue`
 
 ## API Discovery
 
-Inspect installed `@tanstack/vue-table/src` and `@tanstack/vue-virtual/src`; use the maintained Vue examples for exact row, column, and infinite layout combinations.
+Inspect installed `@tanstack/vue-table/dist/` and `@tanstack/vue-virtual/dist/`; use the maintained Vue examples for exact row, column, and infinite layout combinations.

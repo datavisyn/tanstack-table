@@ -6,7 +6,7 @@ metadata:
   type: composition
   library: '@tanstack/angular-table'
   framework: angular
-  library_version: '9.0.0-beta.38'
+  library_version: '9.0.0-beta.58'
 requires:
   - '@tanstack/table-core#client-vs-server'
   - getting-started
@@ -139,4 +139,4 @@ Source: `docs/framework/angular/guide/pagination.md`
 
 ## API Discovery
 
-Inspect installed `@tanstack/angular-table/src/injectTable.ts`, the relevant core feature source, and installed Angular Query source for the exact `injectQuery` package/version contract.
+Inspect installed `@tanstack/angular-table/dist/types/`, the relevant core feature source, and installed Angular Query source for the exact `injectQuery` package/version contract.

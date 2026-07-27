@@ -4,7 +4,6 @@ import { repeat } from 'lit/directives/repeat.js'
 import {
   FlexRender,
   TableController,
-  aggregationFns,
   columnFilteringFeature,
   columnGroupingFeature,
   createColumnHelper,
@@ -13,11 +12,13 @@ import {
   createGroupedRowModel,
   createPaginatedRowModel,
   createSortedRowModel,
-  filterFns,
+  filterFn_inNumberRange,
+  filterFn_includesString,
   rowExpandingFeature,
   rowPaginationFeature,
   rowSortingFeature,
-  sortFns,
+  sortFn_alphanumeric,
+  sortFn_text,
   tableFeatures,
 } from '@tanstack/lit-table'
 import { makeData } from './makeData'
@@ -35,9 +36,14 @@ const features = tableFeatures({
   groupedRowModel: createGroupedRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
   sortedRowModel: createSortedRowModel(),
-  filterFns,
-  sortFns,
-  aggregationFns,
+  filterFns: {
+    includesString: filterFn_includesString,
+    inNumberRange: filterFn_inNumberRange,
+  },
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    text: sortFn_text,
+  },
 })
 
 const columnHelper = createColumnHelper<typeof features, Person>()
@@ -56,14 +62,9 @@ const columns: Array<ColumnDef<typeof features, Person>> = columnHelper.columns(
     }),
     columnHelper.accessor('age', {
       header: () => 'Age',
-      aggregatedCell: ({ getValue }) =>
-        Math.round(getValue<number>() * 100) / 100,
-      aggregationFn: 'median',
     }),
     columnHelper.accessor('visits', {
       header: () => html`<span>Visits</span>`,
-      aggregationFn: 'sum',
-      aggregatedCell: ({ getValue }) => getValue<number>().toLocaleString(),
     }),
     columnHelper.accessor('status', {
       header: 'Status',
@@ -71,9 +72,6 @@ const columns: Array<ColumnDef<typeof features, Person>> = columnHelper.columns(
     columnHelper.accessor('progress', {
       header: 'Profile Progress',
       cell: ({ getValue }) => Math.round(getValue<number>() * 100) / 100 + '%',
-      aggregationFn: 'mean',
-      aggregatedCell: ({ getValue }) =>
-        Math.round(getValue<number>() * 100) / 100 + '%',
     }),
   ],
 )
@@ -91,6 +89,13 @@ class LitTableExample extends LitElement {
         features,
         columns,
         data: this._data,
+        // initialState: { grouping: ['status'] }, // group by a column on first render
+        // atoms: { grouping: groupingAtom }, // preferred: own grouping state with an external atom
+        // state: { grouping }, // classic controlled state; pair with onGroupingChange
+        // onGroupingChange: setGrouping,
+        // enableGrouping: false, // disable grouping for every column; default true
+        // groupedColumnMode: 'remove', // remove grouped columns instead of moving them to the start; default 'reorder'
+        // manualGrouping: true, // pass rows that are already grouped, for example from a server
         debugTable: true,
       },
       (state) => ({
@@ -112,10 +117,10 @@ class LitTableExample extends LitElement {
           </button>
           <button
             @click=${() => {
-              this._data = makeData(200_000)
+              this._data = makeData(1_000_000)
             }}
           >
-            Stress Test (200k rows)
+            Stress Test (1M rows)
           </button>
         </div>
         <div class="spacer-sm"></div>
@@ -162,11 +167,9 @@ class LitTableExample extends LitElement {
                         <td
                           style="background: ${cell.getIsGrouped()
                             ? '#0aff0082'
-                            : cell.getIsAggregated()
-                              ? '#ffa50078'
-                              : cell.getIsPlaceholder()
-                                ? '#ff000042'
-                                : 'white'}"
+                            : cell.getIsPlaceholder()
+                              ? '#ff000042'
+                              : 'white'}"
                         >
                           ${cell.getIsGrouped()
                             ? html`<button
@@ -179,11 +182,9 @@ class LitTableExample extends LitElement {
                                 ${FlexRender({ cell })}
                                 (${row.subRows.length.toLocaleString()})
                               </button>`
-                            : cell.getIsAggregated()
-                              ? FlexRender({ cell })
-                              : cell.getIsPlaceholder()
-                                ? null
-                                : FlexRender({ cell })}
+                            : cell.getIsPlaceholder() || row.getIsGrouped()
+                              ? null
+                              : FlexRender({ cell })}
                         </td>
                       `,
                     )}

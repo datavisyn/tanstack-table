@@ -6,7 +6,7 @@ metadata:
   type: framework
   library: '@tanstack/alpine-table'
   framework: alpine
-  library_version: '9.0.0-beta.41'
+  library_version: '9.0.0-beta.58'
 requires:
   - '@tanstack/table-core#core'
   - getting-started
@@ -133,4 +133,4 @@ Source: TanStack/table:docs/framework/alpine/guide/table-state.md
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/alpine-table/src/createTable.ts` and `reactivity.ts`. Inspect `node_modules/@tanstack/table-core/src/core/table/constructTable.ts` for state precedence.
+Inspect `node_modules/@tanstack/alpine-table/dist/createTable.d.ts` and `reactivity.d.ts`. Inspect `node_modules/@tanstack/table-core/dist/core/table/constructTable.d.ts` for state precedence.

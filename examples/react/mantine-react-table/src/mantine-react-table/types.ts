@@ -9,7 +9,7 @@ import type {
 
 import type {
   AccessorFn,
-  AggregationFn,
+  AggregationFnDef,
   Cell,
   Column,
   ColumnDef,
@@ -75,7 +75,7 @@ import type {
 } from '@mantine/core'
 import type { DateInputProps } from '@mantine/dates'
 
-import type { MRT_AggregationFns } from './fns/aggregationFns'
+import type { MRT_RowAggregationFns } from './fns/aggregationFns'
 import type { MRT_FilterFns } from './fns/filterFns'
 import type { MRT_SortFns } from './fns/sortingFns'
 import type { MRT_Icons } from './icons'
@@ -470,7 +470,12 @@ export type MRT_ColumnDef<TData extends MRT_RowData, TValue = unknown> = {
     row: MRT_Row<TData>
     table: MRT_TableInstance<TData>
   }) => ReactNode
-  aggregationFn?: Array<MRT_AggregationFn<TData>> | MRT_AggregationFn<TData>
+  aggregationFn?:
+    | Array<
+        | MRT_RowAggregationOption
+        | { aggregationFn: MRT_RowAggregationFn<TData>; id: string }
+      >
+    | MRT_RowAggregationFn<TData>
   Cell?: (props: {
     cell: MRT_Cell<TData, TValue>
     column: MRT_Column<TData, TValue>
@@ -805,11 +810,12 @@ export type MRT_Cell<TData extends MRT_RowData, TValue = unknown> = {
   row: MRT_Row<TData>
 } & Omit<Cell<StockFeatures, TData, TValue>, 'column' | 'row'>
 
-export type MRT_AggregationOption = keyof typeof MRT_AggregationFns & string
+export type MRT_RowAggregationOption = keyof typeof MRT_RowAggregationFns &
+  string
 
-export type MRT_AggregationFn<TData extends MRT_RowData> =
-  | AggregationFn<StockFeatures, TData>
-  | MRT_AggregationOption
+export type MRT_RowAggregationFn<TData extends MRT_RowData> =
+  | AggregationFnDef<StockFeatures, TData, any, any>
+  | MRT_RowAggregationOption
 
 export type MRT_SortingOption = LiteralUnion<keyof typeof MRT_SortFns & string>
 
@@ -859,9 +865,12 @@ export type MRT_TableOptions<TData extends MRT_RowData> = {
   /**
    * Custom aggregation functions to apply to the table. These get merged with
    * MRT's built-ins (`mean`, `min`, `max`, etc.) and passed into
-   * `createGroupedRowModel(...)`.
+   * the aggregation feature registry.
    */
-  aggregationFns?: Record<string, AggregationFn<StockFeatures, TData>>
+  aggregationFns?: Record<
+    string,
+    AggregationFnDef<StockFeatures, TData, any, any>
+  >
   /**
    * Custom filter functions to apply to the table. These get merged with MRT's
    * built-ins (`fuzzy`, `contains`, `between`, etc.) and passed into

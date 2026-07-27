@@ -6,7 +6,7 @@ metadata:
   type: framework
   library: '@tanstack/vue-table-devtools'
   framework: vue
-  library_version: '9.0.0-beta.40'
+  library_version: '9.0.0-beta.58'
 requires:
   - '@tanstack/table-core#core'
   - '@tanstack/table-devtools#devtools'
@@ -78,4 +78,4 @@ Source: TanStack/table:packages/vue-table-devtools/src/index.ts
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/vue-table-devtools/src/index.ts` and `useTanStackTableDevtools.ts` for current ref handling.
+Inspect `node_modules/@tanstack/vue-table-devtools/dist/index.d.ts` and `useTanStackTableDevtools.d.ts` for current ref handling.

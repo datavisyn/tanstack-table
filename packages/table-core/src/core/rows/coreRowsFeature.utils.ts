@@ -5,6 +5,64 @@ import type { RowData } from '../../types/type-utils'
 import type { TableFeatures } from '../../types/TableFeatures'
 import type { Row } from '../../types/Row'
 import type { Cell } from '../../types/Cell'
+import type { Row_RowExpanding } from '../../features/row-expanding/rowExpandingFeature.types'
+
+/**
+ * Returns this row's zero-based position in the current pre-pagination row
+ * model. Rows outside that model return `-1`.
+ */
+export function row_getDisplayIndex<
+  TFeatures extends TableFeatures,
+  TData extends RowData,
+>(row: Row<TFeatures, TData>) {
+  const rows = row.table.getRowsInDisplayOrder()
+  const displayIndex = row._displayIndexCache
+
+  return rows[displayIndex] === row ? displayIndex : -1
+}
+
+/**
+ * Returns the rows in the current display order after assigning their
+ * zero-based display indexes.
+ *
+ * When expanded rows bypass pagination, expanded descendants are inserted into
+ * the returned order even though they are absent from the pre-pagination row
+ * model.
+ */
+export function table_getRowsInDisplayOrder<
+  TFeatures extends TableFeatures,
+  TData extends RowData,
+>(table: Table_Internal<TFeatures, TData>) {
+  const rows = table.getPrePaginatedRowModel().rows
+
+  if (table.options.paginateExpandedRows === false) {
+    const displayRows: Array<Row<TFeatures, TData>> = []
+
+    const handleRow = (row: Row<TFeatures, TData>) => {
+      row._displayIndexCache = displayRows.length
+      displayRows.push(row)
+
+      if (
+        row.subRows.length &&
+        (
+          row as Row<TFeatures, TData> & Partial<Row_RowExpanding>
+        ).getIsExpanded?.()
+      ) {
+        row.subRows.forEach(handleRow)
+      }
+    }
+
+    rows.forEach(handleRow)
+
+    return displayRows
+  }
+
+  for (let i = 0; i < rows.length; i++) {
+    rows[i]!._displayIndexCache = i
+  }
+
+  return rows
+}
 
 /**
  * Reads and caches this row's value for a column.
@@ -110,10 +168,28 @@ export function row_getLeafRows<
 }
 
 /**
+ * Returns the deepest structural row depth in the core row model.
+ * Root rows are depth `0`, their direct sub-rows are depth `1`, and so on.
+ */
+export function table_getMaxSubRowDepth<
+  TFeatures extends TableFeatures,
+  TData extends RowData,
+>(table: Table_Internal<TFeatures, TData>): number {
+  const rows = table.getCoreRowModel().flatRows
+  let maxDepth = 0
+
+  for (let i = 0; i < rows.length; i++) {
+    maxDepth = Math.max(maxDepth, rows[i]!.depth)
+  }
+
+  return maxDepth
+}
+
+/**
  * Looks up this row's direct parent, if it has one.
  *
- * Parent lookup searches the pre-pagination row model so parent relationships
- * are available even when the parent is not on the current page.
+ * Parent lookup prefers the core row model for structural parents, then falls
+ * back to the pre-pagination row model for generated parent rows.
  *
  * @example
  * ```ts
@@ -124,7 +200,14 @@ export function row_getParentRow<
   TFeatures extends TableFeatures,
   TData extends RowData,
 >(row: Row<TFeatures, TData>) {
-  return row.parentId ? row.table.getRow(row.parentId, true) : undefined
+  if (!row.parentId) {
+    return undefined
+  }
+
+  return (
+    row.table.getCoreRowModel().rowsById[row.parentId] ??
+    row.table.getRow(row.parentId, true)
+  )
 }
 
 /**

@@ -6,7 +6,7 @@ metadata:
   type: framework
   library: '@tanstack/lit-table'
   framework: lit
-  library_version: '9.0.0-beta.38'
+  library_version: '9.0.0-beta.58'
 requires:
   - '@tanstack/table-core#core'
   - getting-started
@@ -91,4 +91,4 @@ Source: TanStack/table:examples/lit/composable-tables
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/lit-table/src/createTableHook.ts`. Use the matching installed implementation rather than assuming JSX-adapter component APIs exist in Lit.
+Inspect `node_modules/@tanstack/lit-table/dist/createTableHook.d.ts`. Use the matching installed implementation rather than assuming JSX-adapter component APIs exist in Lit.

@@ -4,7 +4,9 @@ import {
   createColumnHelper,
   createSortedRowModel,
   rowSortingFeature,
-  sortFns,
+  sortFn_alphanumeric,
+  sortFn_datetime,
+  sortFn_text,
   tableFeatures,
 } from '@tanstack/table-core'
 import { FlexRender } from '@tanstack/table-core/flex-render'
@@ -19,7 +21,11 @@ const features = tableFeatures({
   rowSortingFeature,
   coreReactivityFeature: storeReactivityBindings(),
   sortedRowModel: createSortedRowModel(),
-  sortFns,
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    datetime: sortFn_datetime,
+    text: sortFn_text,
+  },
 })
 
 // Custom sorting logic for one of our enum columns
@@ -37,6 +43,11 @@ const sortStatusFn: SortFn<typeof features, Person> = (
 const columnHelper = createColumnHelper<typeof features, Person>()
 
 const columns = columnHelper.columns([
+  columnHelper.display({
+    id: 'rowNumber',
+    header: '#',
+    cell: ({ row }) => row.getDisplayIndex() + 1,
+  }),
   columnHelper.accessor('firstName', {
     cell: (info) => info.getValue(),
     // This column will sort in ascending order by default since it is a string column
@@ -176,6 +187,19 @@ const table = constructTable({
   features,
   data,
   columns,
+  // initialState: { sorting: [{ id: 'firstName', desc: false }] }, // set the initial sort once
+  // atoms: { sorting: sortingAtom }, // preferred: own sorting state with an external atom
+  // state: { sorting }, // classic controlled state; pair with onSortingChange
+  // onSortingChange: setSorting,
+  // enableSorting: false, // disable sorting for every column; default true
+  // sortDescFirst: true, // start every sort cycle with descending order; inferred by column data by default
+  // enableSortingRemoval: false, // keep a sorted column sorted when toggling; default true
+  // enableMultiSort: false, // disable Shift-click multi-sorting; default true
+  // enableMultiRemove: false, // prevent a multi-sort toggle from removing a sorted column; default true
+  // isMultiSortEvent: () => true, // make every sort interaction a multi-sort; default requires Shift
+  // maxMultiSortColCount: 3, // limit multi-sorting to three columns; default Infinity
+  // manualSorting: true, // pass data that is already sorted, for example from a server
+  // autoResetPageIndex: false, // with pagination, keep the current page when sorting changes; default true
   debugTable: true,
 })
 

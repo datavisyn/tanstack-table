@@ -28,17 +28,17 @@ Row models run under the hood of TanStack Table to transform your original data 
 
 You should only add the row models that you need. Pass the row model factories as slots directly inside your `tableFeatures()` call alongside your feature objects:
 
-| Slot Key              | Factory Function              | Purpose                           |
-| --------------------- | ----------------------------- | --------------------------------- |
-| (automatic)           | (none)                        | Core row model (always included)  |
-| `filteredRowModel`    | `createFilteredRowModel()`    | Filtering (column + global)       |
-| `sortedRowModel`      | `createSortedRowModel()`      | Sorting                           |
-| `paginatedRowModel`   | `createPaginatedRowModel()`   | Pagination                        |
-| `expandedRowModel`    | `createExpandedRowModel()`    | Row expanding                     |
-| `groupedRowModel`     | `createGroupedRowModel()`     | Grouping and aggregation          |
-| `facetedRowModel`     | `createFacetedRowModel()`     | Faceted filtering                 |
-| `facetedMinMaxValues` | `createFacetedMinMaxValues()` | Min/max for faceted filters       |
-| `facetedUniqueValues` | `createFacetedUniqueValues()` | Unique values for faceted filters |
+| Slot Key              | Factory Function              | Purpose                            |
+| --------------------- | ----------------------------- | ---------------------------------- |
+| (automatic)           | (none)                        | Core row model (always included)   |
+| `filteredRowModel`    | `createFilteredRowModel()`    | Filtering (column + global)        |
+| `sortedRowModel`      | `createSortedRowModel()`      | Sorting                            |
+| `paginatedRowModel`   | `createPaginatedRowModel()`   | Pagination                         |
+| `expandedRowModel`    | `createExpandedRowModel()`    | Row expanding                      |
+| `groupedRowModel`     | `createGroupedRowModel()`     | Grouping; aggregation when enabled |
+| `facetedRowModel`     | `createFacetedRowModel()`     | Faceted filtering                  |
+| `facetedMinMaxValues` | `createFacetedMinMaxValues()` | Min/max for faceted filters        |
+| `facetedUniqueValues` | `createFacetedUniqueValues()` | Unique values for faceted filters  |
 
 The factory functions no longer accept `filterFns`, `sortFns`, or `aggregationFns` as arguments. Those function maps are registered as their own named slots on the features object (see [Function Registries](#function-registries) below).
 
@@ -54,8 +54,9 @@ import {
   createFilteredRowModel,
   createSortedRowModel,
   createPaginatedRowModel,
-  filterFns,
-  sortFns,
+  filterFn_includesString,
+  sortFn_alphanumeric,
+  sortFn_text,
 } from '@tanstack/react-table'
 
 const features = tableFeatures({
@@ -65,8 +66,8 @@ const features = tableFeatures({
   filteredRowModel: createFilteredRowModel(),
   sortedRowModel: createSortedRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
-  filterFns,
-  sortFns,
+  filterFns: { includesString: filterFn_includesString },
+  sortFns: { alphanumeric: sortFn_alphanumeric, text: sortFn_text },
 })
 
 const table = useTable({
@@ -75,6 +76,8 @@ const table = useTable({
   data,
 })
 ```
+
+> Note: the full built-in registries (`filterFns`, `sortFns`, `aggregationFns`) can still be spread into these slots, but they are deprecated because they pull every built-in function into your bundle. Register only the functions you use under their conventional string keys, or pass functions directly to the `filterFn`, `sortFn`, and `aggregationFn` column options with no registration at all. String keys, including the default `'auto'`, only resolve functions that are registered.
 
 ## Function Registries
 
@@ -85,7 +88,6 @@ import {
   tableFeatures,
   columnFilteringFeature,
   createFilteredRowModel,
-  filterFns,
 } from '@tanstack/react-table'
 
 const myFuzzyFilter: FilterFn<typeof features, Person> = (
@@ -101,7 +103,7 @@ const myFuzzyFilter: FilterFn<typeof features, Person> = (
 const features = tableFeatures({
   columnFilteringFeature,
   filteredRowModel: createFilteredRowModel(),
-  filterFns: { ...filterFns, fuzzy: myFuzzyFilter },
+  filterFns: { fuzzy: myFuzzyFilter },
 })
 
 // 'fuzzy' is now a valid type-safe value for filterFn in column defs:
@@ -112,10 +114,10 @@ columnHelper.accessor('name', { filterFn: 'fuzzy' })
 
 The same pattern applies for sorting and grouping:
 
-- `sortFns: { ...sortFns, myCustomSort }` makes `'myCustomSort'` valid for `sortFn` in column defs.
-- `aggregationFns: { ...aggregationFns, myAgg }` makes `'myAgg'` valid for `aggregationFn` in column defs.
+- `sortFns: { myCustomSort }` makes `'myCustomSort'` valid for `sortFn` in column defs.
+- `aggregationFns: { myAgg }` makes `'myAgg'` valid for `aggregationFn` in column defs.
 
-You can spread in the built-in maps (`filterFns`, `sortFns`, `aggregationFns`) to retain the defaults, add your own, or pass only your own to keep the bundle lean.
+To use built-in functions by string name, import them individually (`filterFn_includesString`, `sortFn_alphanumeric`, `aggregationFn_sum`, and so on) and register them under their conventional keys, e.g. `filterFns: { includesString: filterFn_includesString }`. If a column option accepts a function directly, you can also skip registration entirely and pass the imported function as the `filterFn`, `sortFn`, or `aggregationFn` value.
 
 ## Customize/Fork Row Models
 
@@ -136,8 +138,8 @@ For normal rendering use cases, you will probably only need to use the `table.ge
 - `getFilteredRowModel` - returns a row model that accounts for column filtering and global filtering.
 - `getPreFilteredRowModel` - returns a row model before column filtering and global filtering are applied.
 
-- `getGroupedRowModel` - returns a row model that applies grouping and aggregation to the data and creates sub-rows.
-- `getPreGroupedRowModel` - returns a row model before grouping and aggregation are applied.
+- `getGroupedRowModel` - returns a row model that applies grouping and creates sub-rows. When `rowAggregationFeature` is also registered, configured aggregate values are computed for those grouped rows.
+- `getPreGroupedRowModel` - returns the row model before grouping. Its root rows are the default row set used by `column.getAggregationValue()` for grand totals; `maxAggregationDepth` can select a deeper frontier.
 
 - `getSortedRowModel` - returns a row model that has had sorting applied to it.
 - `getPreSortedRowModel` - returns a row model before sorting is applied (rows are in original order).

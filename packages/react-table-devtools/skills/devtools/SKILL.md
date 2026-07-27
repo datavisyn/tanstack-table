@@ -6,7 +6,7 @@ metadata:
   type: framework
   library: '@tanstack/react-table-devtools'
   framework: react
-  library_version: '9.0.0-beta.40'
+  library_version: '9.0.0-beta.58'
 requires:
   - '@tanstack/table-core#core'
   - '@tanstack/table-devtools#devtools'
@@ -82,4 +82,4 @@ Source: TanStack/table:packages/react-table-devtools/src/index.ts
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/react-table-devtools/src/index.ts` and `useTanStackTableDevtools.ts` for the installed lifecycle API.
+Inspect `node_modules/@tanstack/react-table-devtools/dist/index.d.ts` and `useTanStackTableDevtools.d.ts` for the installed lifecycle API.

@@ -1,6 +1,5 @@
 <script lang="ts">
   import {
-    aggregationFns,
     columnFilteringFeature,
     columnGroupingFeature,
     createExpandedRowModel,
@@ -9,12 +8,10 @@
     createPaginatedRowModel,
     createSortedRowModel,
     createTableHook,
-    filterFns,
     FlexRender,
     rowExpandingFeature,
     rowPaginationFeature,
     rowSortingFeature,
-    sortFns,
   } from '@tanstack/svelte-table'
   import { makeData } from './makeData'
   import type { Person } from './makeData'
@@ -32,9 +29,6 @@
       groupedRowModel: createGroupedRowModel(),
       paginatedRowModel: createPaginatedRowModel(),
       sortedRowModel: createSortedRowModel(),
-      filterFns,
-      sortFns,
-      aggregationFns,
     },
   })
 
@@ -57,14 +51,9 @@
     }),
     columnHelper.accessor('age', {
       header: () => 'Age',
-      aggregatedCell: ({ getValue }) =>
-        Math.round(getValue<number>() * 100) / 100,
-      aggregationFn: 'median',
     }),
     columnHelper.accessor('visits', {
       header: () => 'Visits',
-      aggregationFn: 'sum',
-      aggregatedCell: ({ getValue }) => getValue<number>().toLocaleString(),
     }),
     columnHelper.accessor('status', {
       header: 'Status',
@@ -72,15 +61,12 @@
     columnHelper.accessor('progress', {
       header: 'Profile Progress',
       cell: ({ getValue }) => Math.round(getValue<number>() * 100) / 100 + '%',
-      aggregationFn: 'mean',
-      aggregatedCell: ({ getValue }) =>
-        Math.round(getValue<number>() * 100) / 100 + '%',
     }),
   ])
 
   let data = $state(makeData(1_000))
   const refreshData = () => { data = makeData(1_000) }
-  const stressTest = () => { data = makeData(200_000) }
+  const stressTest = () => { data = makeData(1_000_000) }
 
   const table = createAppTable(
     {
@@ -88,6 +74,13 @@
       get data() {
         return data
       },
+      // initialState: { grouping: ['status'] }, // group by a column on first render
+      // atoms: { grouping: groupingAtom }, // preferred: own grouping state with an external atom
+      // state: { grouping }, // classic controlled state; pair with onGroupingChange
+      // onGroupingChange: setGrouping,
+      // enableGrouping: false, // disable grouping for every column; default true
+      // groupedColumnMode: 'remove', // remove grouped columns instead of moving them to the start; default 'reorder'
+      // manualGrouping: true, // pass rows that are already grouped, for example from a server
       debugTable: true,
     },
     (state) => state,
@@ -97,7 +90,7 @@
 <div class="demo-root">
   <div>
     <button onclick={() => refreshData()}>Regenerate Data</button>
-    <button onclick={() => stressTest()}>Stress Test (200k rows)</button>
+    <button onclick={() => stressTest()}>Stress Test (1M rows)</button>
   </div>
   <div class="spacer-sm"></div>
   <table>
@@ -137,9 +130,7 @@
             <td
               style:background={cell.getIsGrouped()
                 ? '#0aff0082'
-                : cell.getIsAggregated()
-                  ? '#ffa50078'
-                  : cell.getIsPlaceholder()
+                : cell.getIsPlaceholder()
                     ? '#ff000042'
                     : 'white'}
             >
@@ -157,12 +148,7 @@
                   <FlexRender cell={cell} />
                   {' '}({row.subRows.length.toLocaleString()})
                 </button>
-              {:else if cell.getIsAggregated()}
-                <FlexRender
-                  content={cell.column.columnDef.aggregatedCell as any}
-                  context={cell.getContext()}
-                />
-              {:else if !cell.getIsPlaceholder()}
+              {:else if !cell.getIsPlaceholder() && !row.getIsGrouped()}
                 <FlexRender cell={cell} />
               {/if}
             </td>

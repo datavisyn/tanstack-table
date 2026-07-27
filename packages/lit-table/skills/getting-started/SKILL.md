@@ -6,7 +6,7 @@ metadata:
   type: framework
   library: '@tanstack/lit-table'
   framework: lit
-  library_version: '9.0.0-beta.38'
+  library_version: '9.0.0-beta.58'
 requires:
   - '@tanstack/table-core#core'
   - '@tanstack/table-core#table-features'
@@ -151,4 +151,4 @@ Source: TanStack/table:docs/overview.md
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/lit-table/src/index.ts` and the exported implementation. Core table and feature APIs are in `node_modules/@tanstack/table-core/src/`.
+Inspect `node_modules/@tanstack/lit-table/dist/index.d.ts` and the exported implementation. Core table and feature APIs are in `node_modules/@tanstack/table-core/dist/`.

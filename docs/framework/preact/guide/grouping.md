@@ -8,6 +8,8 @@ Want to skip to the implementation? Check out these Preact examples:
 
 - [Grouping](../examples/grouping)
 
+> **Note:** `columnGroupingFeature` and `rowAggregationFeature` are now separate features. Register either one independently, or register both when grouped rows should also calculate aggregate values. See the [Aggregation Guide](./aggregation) for aggregation setup.
+
 ### Grouping Setup
 
 Here's how you set up your table to use grouping features. Adding the grouping feature enables the related APIs. Additionally, if using client-side grouping, you also need to set up `groupedRowModel` after its associated feature because row model slots are type-checked.
@@ -18,13 +20,11 @@ import {
   tableFeatures,
   columnGroupingFeature,
   createGroupedRowModel,
-  aggregationFns,
 } from '@tanstack/preact-table'
 
 const features = tableFeatures({
   columnGroupingFeature,
   groupedRowModel: createGroupedRowModel(), // if using client-side grouping
-  aggregationFns,
 })
 
 const table = useTable({
@@ -44,7 +44,7 @@ Grouping can also affect column order. There are 3 table features that can reord
 2. Manual [Column Ordering](./column-ordering) - A manually specified column order is applied.
 3. **Grouping** - If grouping is enabled, a grouping state is active, and `tableOptions.groupedColumnMode` is set to `'reorder' | 'remove'`, then the grouped columns are reordered to the start of the column flow.
 
-To use the grouping feature, add the `columnGroupingFeature`, the `groupedRowModel` factory, and `aggregationFns` to your `tableFeatures` call. The grouped row model is responsible for grouping the rows based on the grouping state.
+To group rows, add `columnGroupingFeature` and the `groupedRowModel` factory.
 
 ```tsx
 import {
@@ -52,13 +52,11 @@ import {
   tableFeatures,
   columnGroupingFeature,
   createGroupedRowModel,
-  aggregationFns,
 } from '@tanstack/preact-table'
 
 const features = tableFeatures({
   columnGroupingFeature,
   groupedRowModel: createGroupedRowModel(),
-  aggregationFns,
 })
 
 const table = useTable({
@@ -76,7 +74,6 @@ const features = tableFeatures({
   rowExpandingFeature,
   groupedRowModel: createGroupedRowModel(),
   expandedRowModel: createExpandedRowModel(),
-  aggregationFns,
 })
 
 const table = useTable({
@@ -109,72 +106,9 @@ const table = useTable({
 })
 ```
 
-### Aggregations
-
-When rows are grouped, you can aggregate the data in the grouped rows by columns using the `aggregationFn` column option. This is a string that is the name of a built-in aggregation function, or a custom aggregation function registered in the registry passed to `createGroupedRowModel`.
-
-```tsx
-const column = columnHelper.accessor('key', {
-  aggregationFn: 'sum',
-})
-```
-
-In the above example, the sum aggregation function will be used to aggregate the data in the grouped rows.
-By default, numeric columns will use the sum aggregation function, and non-numeric columns will use the count aggregation function. You can override this behavior by specifying the aggregationFn option in the column definition.
-
-There are several built-in aggregation functions that you can use:
-
-- sum - Sums the values in the grouped rows.
-- count - Counts the number of rows in the grouped rows.
-- min - Finds the minimum value in the grouped rows.
-- max - Finds the maximum value in the grouped rows.
-- extent - Finds the extent (min and max) of the values in the grouped rows.
-- mean - Finds the mean of the values in the grouped rows.
-- median - Finds the median of the values in the grouped rows.
-- unique - Returns an array of unique values in the grouped rows.
-- uniqueCount - Counts the number of unique values in the grouped rows.
-
-#### Custom Aggregations
-
-You can define custom aggregation functions in the registry that you pass to `createGroupedRowModel`. The registry is a record where the keys are the names of the aggregation functions, and the values are the aggregation functions themselves. You can then reference these aggregation functions by name in a column's `aggregationFn` option.
-
-```tsx
-const myCustomAggregation: AggregationFn<typeof features, MyData> = (
-  columnId,
-  leafRows,
-  childRows,
-) => {
-  // return the aggregated value
-}
-
-const features = tableFeatures({
-  columnGroupingFeature,
-  groupedRowModel: createGroupedRowModel(),
-  aggregationFns: {
-    ...aggregationFns,
-    myCustomAggregation,
-  },
-})
-
-const table = useTable({
-  features,
-  // other options...
-})
-```
-
-In the above example, myCustomAggregation is a custom aggregation function that takes the column ID, the leaf rows, and the child rows, and returns the aggregated value. You can then use this aggregation function in a column's aggregationFn option:
-
-```tsx
-const column = columnHelper.accessor('key', {
-  aggregationFn: 'myCustomAggregation',
-})
-```
-
-> **TypeScript Note:** For `aggregationFn: 'myCustomAggregation'` string references to typecheck, register the function in the `aggregationFns` slot on `tableFeatures` (as shown above). TypeScript infers the registered names from the slot automatically. Alternatively, skip the registry entirely by passing the function directly to the `aggregationFn` column option.
-
 ### Manual Grouping
 
-If you are doing server-side grouping and aggregation, you can enable manual grouping using the manualGrouping option. When this option is set to true, the table will not automatically group rows using getGroupedRowModel() and instead will expect you to manually group the rows before passing them to the table.
+If you are doing server-side grouping, you can enable manual grouping using the manualGrouping option. When this option is set to true, the table will not automatically group rows using getGroupedRowModel() and instead will expect you to group the rows before passing them to the table.
 
 ```tsx
 const features = tableFeatures({ columnGroupingFeature }) // no groupedRowModel for manual grouping
@@ -235,8 +169,6 @@ column.getToggleGroupingHandler()
 column.getCanGroup()
 column.getIsGrouped()
 column.getGroupedIndex()
-column.getAutoAggregationFn()
-column.getAggregationFn()
 ```
 
 Rows expose grouping helpers for grouped row rendering:
@@ -248,11 +180,10 @@ row.groupingColumnId
 row.groupingValue
 ```
 
-Cells expose helpers for choosing between grouped, aggregated, placeholder, and normal cell rendering:
+Cells expose grouping and placeholder helpers:
 
 ```tsx
 cell.getIsGrouped()
-cell.getIsAggregated()
 cell.getIsPlaceholder()
 ```
 

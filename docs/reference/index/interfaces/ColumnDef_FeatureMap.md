@@ -5,7 +5,7 @@ title: ColumnDef_FeatureMap
 
 # Interface: ColumnDef\_FeatureMap\<TFeatures, TData, TValue\>
 
-Defined in: [types/ColumnDef.ts:130](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L130)
+Defined in: [types/ColumnDef.ts:132](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L132)
 
 ## Type Parameters
 
@@ -23,23 +23,33 @@ Defined in: [types/ColumnDef.ts:130](https://github.com/TanStack/table/blob/main
 
 ## Properties
 
-### columnFilteringFeature
+### cellSelectionFeature
 
 ```ts
-columnFilteringFeature: ColumnDef_ColumnFiltering<TFeatures, TData>;
+cellSelectionFeature: ColumnDef_CellSelection;
 ```
 
 Defined in: [types/ColumnDef.ts:137](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L137)
 
 ***
 
+### columnFilteringFeature
+
+```ts
+columnFilteringFeature: ColumnDef_ColumnFiltering<TFeatures, TData>;
+```
+
+Defined in: [types/ColumnDef.ts:138](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L138)
+
+***
+
 ### columnGroupingFeature
 
 ```ts
-columnGroupingFeature: ColumnDef_ColumnGrouping<TFeatures, TData, TValue>;
+columnGroupingFeature: ColumnDef_ColumnGrouping<TFeatures, TData>;
 ```
 
-Defined in: [types/ColumnDef.ts:140](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L140)
+Defined in: [types/ColumnDef.ts:139](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L139)
 
 ***
 
@@ -49,7 +59,7 @@ Defined in: [types/ColumnDef.ts:140](https://github.com/TanStack/table/blob/main
 columnPinningFeature: ColumnDef_ColumnPinning;
 ```
 
-Defined in: [types/ColumnDef.ts:136](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L136)
+Defined in: [types/ColumnDef.ts:140](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L140)
 
 ***
 
@@ -59,7 +69,7 @@ Defined in: [types/ColumnDef.ts:136](https://github.com/TanStack/table/blob/main
 columnResizingFeature: ColumnDef_ColumnResizing;
 ```
 
-Defined in: [types/ColumnDef.ts:142](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L142)
+Defined in: [types/ColumnDef.ts:141](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L141)
 
 ***
 
@@ -69,7 +79,7 @@ Defined in: [types/ColumnDef.ts:142](https://github.com/TanStack/table/blob/main
 columnSizingFeature: ColumnDef_ColumnSizing;
 ```
 
-Defined in: [types/ColumnDef.ts:141](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L141)
+Defined in: [types/ColumnDef.ts:142](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L142)
 
 ***
 
@@ -79,7 +89,7 @@ Defined in: [types/ColumnDef.ts:141](https://github.com/TanStack/table/blob/main
 columnVisibilityFeature: ColumnDef_ColumnVisibility;
 ```
 
-Defined in: [types/ColumnDef.ts:135](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L135)
+Defined in: [types/ColumnDef.ts:143](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L143)
 
 ***
 
@@ -89,7 +99,17 @@ Defined in: [types/ColumnDef.ts:135](https://github.com/TanStack/table/blob/main
 globalFilteringFeature: ColumnDef_GlobalFiltering;
 ```
 
-Defined in: [types/ColumnDef.ts:138](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L138)
+Defined in: [types/ColumnDef.ts:144](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L144)
+
+***
+
+### rowAggregationFeature
+
+```ts
+rowAggregationFeature: ColumnDef_RowAggregation<TFeatures, TData, TValue>;
+```
+
+Defined in: [types/ColumnDef.ts:145](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L145)
 
 ***
 
@@ -99,4 +119,4 @@ Defined in: [types/ColumnDef.ts:138](https://github.com/TanStack/table/blob/main
 rowSortingFeature: ColumnDef_RowSorting<TFeatures, TData>;
 ```
 
-Defined in: [types/ColumnDef.ts:139](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L139)
+Defined in: [types/ColumnDef.ts:146](https://github.com/TanStack/table/blob/main/packages/table-core/src/types/ColumnDef.ts#L146)

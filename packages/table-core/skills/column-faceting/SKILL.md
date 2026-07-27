@@ -6,7 +6,7 @@ metadata:
   {
     type: sub-skill,
     library: '@tanstack/table-core',
-    library_version: '9.0.0-beta.38',
+    library_version: '9.0.0-beta.58',
   }
 requires: ['core', 'table-features', 'column-filtering']
 sources:
@@ -27,14 +27,18 @@ import {
   createFacetedRowModel,
   createFacetedUniqueValues,
   createFilteredRowModel,
-  filterFns,
+  filterFn_includesString,
+  filterFn_inNumberRange,
   tableFeatures,
 } from '@tanstack/table-core'
 
 export const features = tableFeatures({
   columnFilteringFeature,
   filteredRowModel: createFilteredRowModel(),
-  filterFns,
+  filterFns: {
+    includesString: filterFn_includesString,
+    inNumberRange: filterFn_inNumberRange,
+  },
   columnFacetingFeature,
   facetedRowModel: createFacetedRowModel(),
   facetedUniqueValues: createFacetedUniqueValues(),
@@ -51,8 +55,10 @@ const range = table.getColumn('age')?.getFacetedMinMaxValues()
 
 Use unique values for discrete controls and min/max only for numeric ranges.
 The filtered model makes facets respond to the table's other active filters.
-The built-in `filterFns` registry supports named stock filters; a column may
-instead receive a filter function directly without registering it.
+Register individually imported built-ins under their conventional keys so
+columns can reference them by string name; a column may instead receive a
+filter function directly without registering it. The full `filterFns` registry
+object still works but bundles every built-in.
 
 ## Common Mistakes
 
@@ -88,4 +94,4 @@ Source: `docs/framework/react/guide/column-faceting.md#custom-server-side-faceti
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/table-core/src/features/column-faceting/` for exact getters and factory return types.
+Inspect `node_modules/@tanstack/table-core/dist/features/column-faceting/` for exact getters and factory return types.

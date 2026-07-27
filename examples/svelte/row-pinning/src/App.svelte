@@ -7,7 +7,8 @@
     createPaginatedRowModel,
     createTable,
     createTableState,
-    filterFns,
+    filterFn_includesString,
+    filterFn_inNumberRange,
     FlexRender,
     rowExpandingFeature,
     rowPaginationFeature,
@@ -33,7 +34,10 @@
     filteredRowModel: createFilteredRowModel(),
     expandedRowModel: createExpandedRowModel(),
     paginatedRowModel: createPaginatedRowModel(),
-    filterFns,
+    filterFns: {
+      includesString: filterFn_includesString,
+      inNumberRange: filterFn_inNumberRange,
+    },
   })
 
   const [rowPinning, setRowPinning] = createTableState<RowPinningState>({
@@ -53,7 +57,6 @@
 
   const table = createTable(
     {
-      debugTable: true,
       features,
       columns: [
         {
@@ -99,6 +102,9 @@
       get keepPinnedRows() {
         return keepPinnedRows
       },
+      // atoms: { rowPinning: rowPinningAtom }, // preferred: own pinning state with an external atom
+      // enableRowPinning: row => row.original.age > 18, // allow pinning only for matching rows; default true
+      debugTable: true,
       debugAll: true,
     },
     (state) => ({

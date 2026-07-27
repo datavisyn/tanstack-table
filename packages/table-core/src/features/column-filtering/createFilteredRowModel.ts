@@ -22,8 +22,12 @@ import type {
  *
  * The factory reads the relevant table state atoms and options, then returns a row model function used by the table row-model pipeline.
  *
- * Register filter functions with the `filterFns` slot on the `features` option:
- * `tableFeatures({ columnFilteringFeature, filteredRowModel: createFilteredRowModel(), filterFns })`.
+ * Register the filter functions you use with the `filterFns` slot on the
+ * `features` option:
+ * `tableFeatures({ columnFilteringFeature, filteredRowModel: createFilteredRowModel(), filterFns: { includesString: filterFn_includesString } })`.
+ * Importing individual `filterFn_*` functions keeps unused built-ins out of
+ * your bundle; filter functions passed directly to the `filterFn` column
+ * option need no registration at all.
  */
 export function createFilteredRowModel<
   TFeatures extends TableFeatures,
@@ -53,8 +57,10 @@ function _createFilteredRowModel<
   const rowModel = table.getPreFilteredRowModel()
   const columnFilters = table.atoms.columnFilters?.get()
   const globalFilter = table.atoms.globalFilter?.get()
+  const hasGlobalFilter =
+    globalFilter !== undefined && globalFilter !== null && globalFilter !== ''
 
-  if (!rowModel.rows.length || (!columnFilters?.length && !globalFilter)) {
+  if (!rowModel.rows.length || (!columnFilters?.length && !hasGlobalFilter)) {
     const flatRows = rowModel.flatRows as Array<
       Row<TFeatures, TData> & Partial<Row_ColumnFiltering<TFeatures, TData>>
     >
@@ -78,7 +84,13 @@ function _createFilteredRowModel<
       return
     }
 
-    const filterFn = column_getFilterFn(column)!
+    const filterFn = column_getFilterFn(column)
+
+    // A dev warning has already fired in column_getFilterFn; ignore the
+    // filter instead of crashing when its filter fn is not registered.
+    if (!filterFn) {
+      return
+    }
 
     resolvedColumnFilters.push({
       id: columnFilter.id,
@@ -96,7 +108,7 @@ function _createFilteredRowModel<
     .getAllLeafColumns()
     .filter((column) => column_getCanGlobalFilter(column))
 
-  if (globalFilter && globalFilterFn && globallyFilterableColumns.length) {
+  if (hasGlobalFilter && globalFilterFn && globallyFilterableColumns.length) {
     filterableIds.push('__global__')
 
     globallyFilterableColumns.forEach((column) => {

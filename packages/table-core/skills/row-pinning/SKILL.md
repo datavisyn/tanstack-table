@@ -6,7 +6,7 @@ metadata:
   {
     type: sub-skill,
     library: '@tanstack/table-core',
-    library_version: '9.0.0-beta.38',
+    library_version: '9.0.0-beta.58',
   }
 requires: ['core', 'table-features']
 sources:
@@ -79,4 +79,4 @@ Source: `packages/table-core/src/features/row-pinning/rowPinningFeature.types.ts
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/table-core/src/features/row-pinning/` for region getters, row APIs, and `keepPinnedRows` semantics.
+Inspect `node_modules/@tanstack/table-core/dist/features/row-pinning/` for region getters, row APIs, and `keepPinnedRows` semantics.

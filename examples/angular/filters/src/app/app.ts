@@ -5,7 +5,9 @@ import {
   createFilteredRowModel,
   createPaginatedRowModel,
   createTableHook,
-  filterFns,
+  filterFn_equalsString,
+  filterFn_inNumberRange,
+  filterFn_includesString,
   isFunction,
   metaHelper,
   rowPaginationFeature,
@@ -27,7 +29,11 @@ export const features = tableFeatures({
   columnMeta: metaHelper<MyColumnMeta>(),
   filteredRowModel: createFilteredRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
-  filterFns,
+  filterFns: {
+    includesString: filterFn_includesString,
+    inNumberRange: filterFn_inNumberRange,
+    equalsString: filterFn_equalsString,
+  },
 })
 
 const { injectAppTable, createAppColumnHelper } = createTableHook({
@@ -40,6 +46,11 @@ const { injectAppTable, createAppColumnHelper } = createTableHook({
 const columnHelper = createAppColumnHelper<Person>()
 
 const columns = columnHelper.columns([
+  columnHelper.display({
+    id: 'rowNumber',
+    header: '#',
+    cell: ({ row }) => row.getDisplayIndex() + 1,
+  }),
   columnHelper.accessor('firstName', {
     cell: (info) => info.getValue(),
   }),
@@ -62,6 +73,7 @@ const columns = columnHelper.columns([
   }),
   columnHelper.accessor('status', {
     header: 'Status',
+    filterFn: 'equalsString', // filterFn string to pick from filterFns
     meta: {
       filterVariant: 'select',
     },
@@ -71,6 +83,8 @@ const columns = columnHelper.columns([
     meta: {
       filterVariant: 'range',
     },
+    filterFn: filterFn_inNumberRange, // or just reference static filterFn from import
+    // you could also write your own custom filter function here
   }),
 ])
 
@@ -95,6 +109,13 @@ export class App {
         ? this.columnFilters.update(updater)
         : this.columnFilters.set(updater)
     },
+    // initialState: { columnFilters: [{ id: 'firstName', value: 'Jane' }] }, // set filters once
+    // atoms: { columnFilters: columnFiltersAtom }, // preferred: own column filters with an external atom
+    // enableFilters: false, // disable all column and global filtering; default true
+    // enableColumnFilters: false, // disable per-column filters; default true
+    // filterFromLeafRows: true, // keep parents whose descendants match; default filters from parents down
+    // maxLeafRowFilterDepth: 1, // only filter through this nested-row depth; default 100
+    // manualFiltering: true, // pass data that is already filtered, for example from a server
   }))
 
   stringifiedState() {

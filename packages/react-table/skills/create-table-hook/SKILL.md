@@ -5,7 +5,7 @@ description: >
 metadata:
   type: framework
   library: '@tanstack/react-table'
-  library_version: '9.0.0-beta.38'
+  library_version: '9.0.0-beta.58'
   framework: react
 requires:
   - '@tanstack/table-core#core'
@@ -179,4 +179,4 @@ Source: `https://github.com/TanStack/table/issues/6348`
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/react-table/src/createTableHook.tsx` and `createTableHookContexts.tsx` for the exact returned helpers, component registries, wrapper props, and scoped context types.
+Inspect `node_modules/@tanstack/react-table/dist/createTableHook.d.ts` and `createTableHookContexts.d.ts` for the exact returned helpers, component registries, wrapper props, and scoped context types.

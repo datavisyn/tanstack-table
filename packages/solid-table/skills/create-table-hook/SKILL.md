@@ -6,7 +6,7 @@ metadata:
   {
     type: framework,
     library: '@tanstack/solid-table',
-    library_version: '9.0.0-beta.38',
+    library_version: '9.0.0-beta.58',
     framework: solid,
   }
 requires: ['@tanstack/table-core#core', getting-started, table-state]
@@ -119,4 +119,4 @@ Source: `packages/solid-table/src/createTableHook.tsx`
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/solid-table/src/createTableHook.tsx` for exact returned names, component binding, context providers, and reactive option merging.
+Inspect `node_modules/@tanstack/solid-table/dist/createTableHook.d.ts` for exact returned names, component binding, context providers, and reactive option merging.

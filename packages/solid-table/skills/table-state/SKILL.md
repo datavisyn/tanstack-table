@@ -6,7 +6,7 @@ metadata:
   {
     type: framework,
     library: '@tanstack/solid-table',
-    library_version: '9.0.0-beta.38',
+    library_version: '9.0.0-beta.58',
     framework: solid,
   }
 requires: ['@tanstack/table-core#core', getting-started]
@@ -154,4 +154,4 @@ Source: `packages/solid-table/src/createTable.ts`
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/solid-table/src/createTable.ts` and `reactivity.ts`; state slice definitions and atom precedence are in installed `@tanstack/table-core/src/`.
+Inspect `node_modules/@tanstack/solid-table/dist/createTable.d.ts` and `reactivity.d.ts`; state slice definitions and atom precedence are in installed `@tanstack/table-core/dist/`.

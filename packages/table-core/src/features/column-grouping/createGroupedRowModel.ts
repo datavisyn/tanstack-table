@@ -1,14 +1,14 @@
-import { flattenBy, hasOwn, makeObjectMap, tableMemo } from '../../utils'
+import { hasOwn, makeObjectMap, tableMemo } from '../../utils'
 import { constructRow } from '../../core/rows/constructRow'
 import { table_getColumn } from '../../core/columns/coreColumnsFeature.utils'
 import { table_autoResetExpanded } from '../row-expanding/rowExpandingFeature.utils'
 import { table_autoResetPageIndex } from '../row-pagination/rowPaginationFeature.utils'
 import {
-  column_getAggregationFn,
-  row_getGroupingValue,
-} from './columnGroupingFeature.utils'
-import type { Column } from '../../types/Column'
+  aggregateColumnValue,
+  normalizeUniqueAggregationRows,
+} from '../row-aggregation/rowAggregationFeature.utils'
 import type { Row_ColumnGrouping } from './columnGroupingFeature.types'
+import type { Column_Internal } from '../../types/Column'
 import type { TableFeatures } from '../../types/TableFeatures'
 import type { RowModel } from '../../core/row-models/coreRowModelsFeature.types'
 import type { Table, Table_Internal } from '../../types/Table'
@@ -20,9 +20,8 @@ import type { RowData } from '../../types/type-utils'
  *
  * The factory reads the relevant table state atoms and options, then returns a row model function used by the table row-model pipeline.
  *
- * Register aggregation functions with the `aggregationFns` slot on the
- * `features` option:
- * `tableFeatures({ columnGroupingFeature, groupedRowModel: createGroupedRowModel(), aggregationFns })`.
+ * When rowAggregationFeature is also registered, grouped rows use its shared
+ * executor for non-group values. Grouping remains useful without aggregation.
  */
 export function createGroupedRowModel<
   TFeatures extends TableFeatures,
@@ -37,6 +36,7 @@ export function createGroupedRowModel<
       memoDeps: () => [
         table.atoms.grouping?.get(),
         table.getPreGroupedRowModel(),
+        table.options.columns,
       ],
       fn: () => _createGroupedRowModel(table),
       onAfterUpdate: () => {
@@ -103,7 +103,7 @@ function _createGroupedRowModel<
     const columnId = existingGrouping[depth] as string
 
     // Group the rows together for this level
-    const rowGroupsMap = groupBy(rows, columnId)
+    const rowGroupsMap = groupBy(table, rows, columnId)
 
     // Perform aggregations for each group
     const aggregatedGroupedRows = Array.from(rowGroupsMap.entries()).map(
@@ -118,10 +118,13 @@ function _createGroupedRowModel<
           subRow.parentId = id
         })
 
-        // Flatten the leaf rows of the rows in this group
-        const leafRows = depth
-          ? flattenBy(groupedRows, (row) => row.subRows)
-          : groupedRows
+        // Rows produced by groupBy are disjoint members of the pre-grouped
+        // row tree, so the duplicate-id guard is unnecessary; flat groups
+        // reuse the partition array as-is.
+        const leafRows = normalizeUniqueAggregationRows(
+          groupedRows,
+          Infinity,
+        ) as Array<Row<TFeatures, TData>>
 
         const row = constructRow(
           table,
@@ -139,8 +142,12 @@ function _createGroupedRowModel<
           subRows,
           leafRows,
           getValue: (colId: string) => {
-            // Don't aggregate columns that are in the grouping
-            if (existingGrouping.includes(colId)) {
+            const groupingIndex = existingGrouping.indexOf(colId)
+
+            // The active grouping column and ancestor grouping columns expose
+            // their inherited grouping values. Columns grouped at deeper
+            // levels are still eligible for aggregation here.
+            if (groupingIndex !== -1 && groupingIndex <= depth) {
               if (hasOwn(row._valuesCache, colId)) {
                 return row._valuesCache[colId]
               }
@@ -153,32 +160,26 @@ function _createGroupedRowModel<
               return row._valuesCache[colId]
             }
 
-            if (
-              row._groupingValuesCache &&
-              hasOwn(row._groupingValuesCache, colId)
-            ) {
-              return row._groupingValuesCache[colId]
+            const aggregationCache = (row as any)._aggregationValuesCache as
+              | Record<string, unknown>
+              | undefined
+            if (aggregationCache && hasOwn(aggregationCache, colId)) {
+              return aggregationCache[colId]
             }
 
-            // Aggregate the values
-            const column = table.getColumn(colId)
-            const aggregateFn = column_getAggregationFn(
-              column as Column<TFeatures, TData, unknown>,
-            )
+            const column = table.getColumn(colId) as any
+            if (typeof column.getAggregationFns !== 'function') return undefined
 
-            if (!row._groupingValuesCache) {
-              row._groupingValuesCache = makeObjectMap()
-            }
-
-            if (aggregateFn) {
-              row._groupingValuesCache[colId] = aggregateFn(
-                colId,
-                leafRows,
-                groupedRows,
-              )
-
-              return row._groupingValuesCache[colId]
-            }
+            const cache = ((row as any)._aggregationValuesCache ??=
+              makeObjectMap())
+            cache[colId] = aggregateColumnValue({
+              subRows,
+              column,
+              groupingRow: row,
+              rows: groupedRows,
+              uniqueRows: true,
+            })
+            return cache[colId]
           },
         })
 
@@ -209,19 +210,49 @@ function _createGroupedRowModel<
 }
 
 function groupBy<TFeatures extends TableFeatures, TData extends RowData = any>(
+  table: Table_Internal<TFeatures, TData>,
   rows: Array<Row<TFeatures, TData>>,
   columnId: string,
 ) {
   const groupMap = new Map<any, Array<Row<TFeatures, TData>>>()
 
-  return rows.reduce((map, row) => {
-    const resKey = `${row_getGroupingValue(row, columnId)}`
-    const previous = map.get(resKey)
+  // Resolve the column once instead of per row: `table.getColumn` goes
+  // through the memoized-API dispatcher, which is far too expensive to sit
+  // inside this per-row loop. The branches below mirror
+  // `row_getGroupingValue`'s caching contract exactly.
+  const column = table_getColumn(table, columnId) as
+    | Column_Internal<TFeatures, TData, unknown>
+    | undefined
+  const getGroupingValue = column?.columnDef.getGroupingValue
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i]!
+    let groupingValue
+    if (getGroupingValue) {
+      const cache = (row as any)._groupingValuesCache as
+        | Record<string, unknown>
+        | undefined
+      if (cache && hasOwn(cache, columnId)) {
+        groupingValue = cache[columnId]
+      } else if (cache) {
+        groupingValue = cache[columnId] = getGroupingValue(
+          row.original,
+          row.index,
+          row,
+        )
+      }
+    } else {
+      groupingValue = row.getValue(columnId)
+    }
+
+    const resKey = `${groupingValue}`
+    const previous = groupMap.get(resKey)
     if (!previous) {
-      map.set(resKey, [row])
+      groupMap.set(resKey, [row])
     } else {
       previous.push(row)
     }
-    return map
-  }, groupMap)
+  }
+
+  return groupMap
 }

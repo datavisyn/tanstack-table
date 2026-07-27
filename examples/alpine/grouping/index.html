@@ -9,7 +9,7 @@
     <div id="root" class="demo-root" x-data="table">
       <div class="button-row">
         <button @click="refreshData()">Regenerate Data</button>
-        <button @click="stressTest()">Stress Test (200k rows)</button>
+        <button @click="stressTest()">Stress Test (1M rows)</button>
       </div>
       <div class="spacer-sm"></div>
       <table>
@@ -59,17 +59,13 @@
                       ></span>
                     </button>
                   </template>
-                  <!-- aggregated cell -->
-                  <template x-if="cell.getIsAggregated()">
-                    <span x-html="FlexRender({ cell })"></span>
-                  </template>
                   <!-- placeholder cell: nothing -->
                   <template x-if="cell.getIsPlaceholder()">
                     <span></span>
                   </template>
                   <!-- normal cell -->
                   <template
-                    x-if="!cell.getIsGrouped() && !cell.getIsAggregated() && !cell.getIsPlaceholder()"
+                    x-if="!cell.getIsGrouped() && !cell.row.getIsGrouped() && !cell.getIsPlaceholder()"
                   >
                     <span x-html="FlexRender({ cell })"></span>
                   </template>

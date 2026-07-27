@@ -1,5 +1,9 @@
 import {
-  aggregationFns,
+  rowAggregationFeature,
+  aggregationFn_extent,
+  aggregationFn_mean,
+  aggregationFn_median,
+  aggregationFn_sum,
   columnFilteringFeature,
   columnGroupingFeature,
   createColumnHelper,
@@ -8,13 +12,15 @@ import {
   createGroupedRowModel,
   createPaginatedRowModel,
   createSortedRowModel,
-  filterFns,
+  filterFn_includesString,
   globalFilteringFeature,
   rowExpandingFeature,
   rowPaginationFeature,
   rowSelectionFeature,
   rowSortingFeature,
-  sortFns,
+  sortFn_alphanumeric,
+  sortFn_datetime,
+  sortFn_text,
   tableFeatures,
 } from '@tanstack/react-table'
 import { workerRowModelsFeature } from '@tanstack/react-table/experimental-worker-plugin'
@@ -37,6 +43,7 @@ import type { Person } from './makeData'
 // crosses threads at all.
 
 export const sharedFeatures = tableFeatures({
+  rowAggregationFeature,
   rowSortingFeature,
   columnFilteringFeature,
   globalFilteringFeature,
@@ -50,9 +57,20 @@ export const sharedFeatures = tableFeatures({
   sortedRowModel: createSortedRowModel(),
   expandedRowModel: createExpandedRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
-  sortFns,
-  filterFns,
-  aggregationFns,
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    datetime: sortFn_datetime,
+    text: sortFn_text,
+  },
+  filterFns: {
+    includesString: filterFn_includesString,
+  },
+  aggregationFns: {
+    extent: aggregationFn_extent,
+    mean: aggregationFn_mean,
+    median: aggregationFn_median,
+    sum: aggregationFn_sum,
+  },
 })
 
 export const columnHelper = createColumnHelper<typeof sharedFeatures, Person>()
@@ -69,6 +87,17 @@ const sortStatusFn: SortFn<typeof sharedFeatures, Person> = (
     statusOrder.indexOf(rowA.original.status) -
     statusOrder.indexOf(rowB.original.status)
   )
+}
+
+// Multi-aggregation values are keyed objects on grouped rows, so define which
+// result controls their order. Leaf rows still sort by their numeric age.
+const sortAgeFn: SortFn<typeof sharedFeatures, Person> = (rowA, rowB) => {
+  const getAge = (row: typeof rowA) => {
+    const value = row.getValue<number | { median: number }>('age')
+    return typeof value === 'number' ? value : value.median
+  }
+
+  return getAge(rowA) - getAge(rowB)
 }
 
 // The sorting example's column defs merged with the grouping example's
@@ -97,9 +126,15 @@ export const columns = columnHelper.columns([
   }),
   columnHelper.accessor('age', {
     header: () => 'Age',
-    aggregationFn: 'median',
-    aggregatedCell: ({ getValue }) =>
-      Math.round(getValue<number>() * 100) / 100,
+    sortFn: sortAgeFn,
+    aggregationFn: ['median', { id: 'range', aggregationFn: 'extent' }],
+    aggregatedCell: ({ getValue }) => {
+      const value = getValue<{
+        median: number
+        range: [number | undefined, number | undefined]
+      }>()
+      return `Median ${Math.round(value.median * 100) / 100}; Range ${value.range[0]}–${value.range[1]}`
+    },
   }),
   columnHelper.accessor('visits', {
     header: () => <span>Visits</span>,

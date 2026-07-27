@@ -7,13 +7,15 @@
     createPaginatedRowModel,
     createSortedRowModel,
     createTable,
-    filterFns,
+    filterFn_includesString,
+    filterFn_inNumberRange,
     FlexRender,
     rowExpandingFeature,
     rowPaginationFeature,
     rowSelectionFeature,
     rowSortingFeature,
-    sortFns,
+    sortFn_alphanumeric,
+    sortFn_text,
     tableFeatures,
   } from '@tanstack/svelte-table'
   import type { Column, SvelteTable } from '@tanstack/svelte-table'
@@ -31,8 +33,14 @@
     filteredRowModel: createFilteredRowModel(),
     paginatedRowModel: createPaginatedRowModel(),
     sortedRowModel: createSortedRowModel(),
-    filterFns,
-    sortFns,
+    filterFns: {
+      includesString: filterFn_includesString,
+      inNumberRange: filterFn_inNumberRange,
+    },
+    sortFns: {
+      alphanumeric: sortFn_alphanumeric,
+      text: sortFn_text,
+    },
   })
 
   const columnHelper = createColumnHelper<typeof features, Person>()
@@ -52,6 +60,11 @@
   const stressTest = () => { data = makeData(10_000, 5, 3) }
 
   const columns = columnHelper.columns([
+    columnHelper.display({
+      id: 'rowNumber',
+      header: '#',
+      cell: ({ row }) => row.getDisplayIndex() + 1,
+    }),
     columnHelper.accessor('firstName', {
       header: () => 'firstName',
       cell: ({ row, getValue }) => getValue<string>(),
@@ -66,7 +79,7 @@
     columnHelper.accessor('age', {
       header: () => 'Age',
       footer: (props) => props.column.id,
-      filterFn: 'between',
+      filterFn: 'inNumberRange',
     }),
     columnHelper.accessor('visits', {
       header: () => 'Visits',
@@ -90,6 +103,19 @@
         return data
       },
       getSubRows: (row) => row.subRows,
+      // initialState: { expanded: { '0': true } }, // expand rows on first render
+      // atoms: { expanded: expandedAtom }, // preferred: own expanded state with an external atom
+      // state: { expanded }, // classic controlled state; pair with onExpandedChange
+      // onExpandedChange: setExpanded,
+      // enableExpanding: false, // disable expanding for every row; default true
+      // getRowCanExpand: row => row.original.subRows?.length > 0, // override which rows can expand
+      // getIsRowExpanded: row => row.id === '0', // override whether a row is expanded
+      // manualExpanding: true, // pass data that is already expanded, for example from a server
+      // paginateExpandedRows: false, // keep expanded children on their parent page; default true
+      // autoResetExpanded: false, // keep expanded rows after page-altering changes; default true
+      // autoResetAll: false, // turn off every feature's automatic reset, including expansion
+      // filterFromLeafRows: true, // with filtering, keep parents whose descendants match
+      // maxLeafRowFilterDepth: 0, // with filtering, only filter root rows
       debugTable: true,
     },
     (state) => ({
@@ -160,7 +186,9 @@
                         (row.getCanSelectSubRows() &&
                           row.getIsAllSubRowsSelected())}
                       use:setIndeterminate={!row.getIsSelected() && row.getIsSomeSelected()}
-                      onchange={row.getToggleSelectedHandler()}
+                      onclick={row.getToggleSelectedHandler({
+                        // selectChildren: false
+                      })}
                       class="sortable-header"
                     />
                     {' '}

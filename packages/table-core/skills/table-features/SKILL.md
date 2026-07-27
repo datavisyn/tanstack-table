@@ -5,7 +5,7 @@ description: >
 metadata:
   type: sub-skill
   library: '@tanstack/table-core'
-  library_version: '9.0.0-beta.38'
+  library_version: '9.0.0-beta.58'
 requires: ['core']
 sources:
   - 'TanStack/table:docs/guide/row-models.md'
@@ -22,26 +22,28 @@ This skill builds on `core`. Read it first for the headless model and stable inp
 
 ```ts
 import {
-  aggregationFns,
+  rowAggregationFeature,
+  aggregationFn_sum,
   columnGroupingFeature,
   createFilteredRowModel,
   createSortedRowModel,
   columnFilteringFeature,
-  filterFns,
+  filterFn_includesString,
   rowSortingFeature,
-  sortFns,
+  sortFn_alphanumeric,
   tableFeatures,
 } from '@tanstack/table-core'
 
 export const features = tableFeatures({
   columnFilteringFeature,
   filteredRowModel: createFilteredRowModel(),
-  filterFns,
+  filterFns: { includesString: filterFn_includesString },
+  rowAggregationFeature,
   columnGroupingFeature,
-  aggregationFns,
+  aggregationFns: { sum: aggregationFn_sum },
   rowSortingFeature,
   sortedRowModel: createSortedRowModel(),
-  sortFns,
+  sortFns: { alphanumeric: sortFn_alphanumeric },
 })
 ```
 
@@ -63,19 +65,23 @@ const features = tableFeatures({
 ```ts
 const features = tableFeatures({
   columnFilteringFeature,
-  filterFns,
+  filterFns: { includesString: filterFn_includesString },
   rowSortingFeature,
-  sortFns,
+  sortFns: { alphanumeric: sortFn_alphanumeric },
+  rowAggregationFeature,
   columnGroupingFeature,
-  aggregationFns,
+  aggregationFns: { sum: aggregationFn_sum },
 })
 ```
 
 `filterFns`, `sortFns`, and `aggregationFns` are feature slots, not table
 options. They respectively require `columnFilteringFeature`,
-`rowSortingFeature`, and `columnGroupingFeature`. A registered key can be used
-as a typed string name; pass a function directly when no registry name is
-needed.
+`rowSortingFeature`, and `rowAggregationFeature`. Import individual built-ins
+(`filterFn_*`, `sortFn_*`, `aggregationFn_*`) and register them under their
+conventional keys; the full registry objects (`filterFns`, `sortFns`,
+`aggregationFns` exports) still work but bundle every built-in. A registered
+key can be used as a typed string name, and `'auto'` resolves only registered
+functions; pass a function directly when no registry name is needed.
 
 ### Prefer explicit features
 
@@ -150,4 +156,4 @@ Source: `packages/table-core/src/features/stockFeatures.ts`
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/table-core/src/types/TableFeatures.ts` for current slots and `FeatureSlotPrereqs`, and `src/features/stockFeatures.ts` for the stock inventory.
+Inspect `node_modules/@tanstack/table-core/dist/types/TableFeatures.d.ts` for current slots and `FeatureSlotPrereqs`, and `dist/features/stockFeatures.d.ts` for the stock inventory.

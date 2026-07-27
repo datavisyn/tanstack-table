@@ -7,12 +7,15 @@ import {
   createFilteredRowModel,
   createPaginatedRowModel,
   createSortedRowModel,
+  filterFn_inNumberRange,
+  filterFn_includesString,
   filterFns,
   rowExpandingFeature,
   rowPaginationFeature,
   rowSelectionFeature,
   rowSortingFeature,
-  sortFns,
+  sortFn_alphanumeric,
+  sortFn_text,
   tableFeatures,
   useTable,
 } from '@tanstack/react-table'
@@ -33,8 +36,15 @@ const features = tableFeatures({
   filteredRowModel: createFilteredRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
   sortedRowModel: createSortedRowModel(),
-  filterFns,
-  sortFns,
+  filterFns: {
+    between: filterFns.between, // no individual export for this fn (yet)
+    includesString: filterFn_includesString,
+    inNumberRange: filterFn_inNumberRange,
+  },
+  sortFns: {
+    alphanumeric: sortFn_alphanumeric,
+    text: sortFn_text,
+  },
 })
 
 const columnHelper = createColumnHelper<typeof features, Person>()
@@ -43,6 +53,11 @@ function App() {
   const columns = React.useMemo(
     () =>
       columnHelper.columns([
+        columnHelper.display({
+          id: 'rowNumber',
+          header: '#',
+          cell: ({ row }) => row.getDisplayIndex() + 1,
+        }),
         columnHelper.accessor('firstName', {
           header: ({ table }) => (
             <>
@@ -74,7 +89,9 @@ function App() {
                     (row.getCanSelectSubRows() && row.getIsAllSubRowsSelected())
                   }
                   indeterminate={row.getIsSomeSelected()}
-                  onChange={row.getToggleSelectedHandler()}
+                  onChange={row.getToggleSelectedHandler({
+                    // selectChildren: false
+                  })}
                 />{' '}
                 {row.getCanExpand() ? (
                   <button
@@ -128,9 +145,20 @@ function App() {
       features,
       columns,
       data,
-      getSubRows: (row) => row.subRows,
-      // filterFromLeafRows: true,
-      // maxLeafRowFilterDepth: 0,
+      getSubRows: (row) => row.subRows, // tell the table where nested rows live
+      // initialState: { expanded: { '0': true } }, // expand rows on first render
+      // atoms: { expanded: expandedAtom }, // preferred: own expanded state with an external atom
+      // state: { expanded }, // classic controlled state; pair with onExpandedChange
+      // onExpandedChange: setExpanded,
+      // enableExpanding: false, // disable expanding for every row; default true
+      // getRowCanExpand: row => row.original.subRows?.length > 0, // override which rows can expand
+      // getIsRowExpanded: row => row.id === '0', // override whether a row is expanded
+      // manualExpanding: true, // pass data that is already expanded, for example from a server
+      // paginateExpandedRows: false, // keep expanded children on their parent page; default true
+      // autoResetExpanded: false, // keep expanded rows after page-altering changes; default true
+      // autoResetAll: false, // turn off every feature's automatic reset, including expansion
+      // filterFromLeafRows: true, // with filtering, keep parents whose descendants match
+      // maxLeafRowFilterDepth: 0, // with filtering, only filter root rows
       debugTable: true,
       debugRows: true,
     },

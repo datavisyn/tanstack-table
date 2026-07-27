@@ -5,7 +5,7 @@ description: >
 metadata:
   type: core
   library: '@tanstack/match-sorter-utils'
-  library_version: '9.0.0-beta.41'
+  library_version: '9.0.0-beta.53'
 sources:
   - 'TanStack/table:packages/match-sorter-utils/src/index.ts'
   - 'TanStack/table:docs/framework/react/guide/fuzzy-filtering.md'
@@ -91,4 +91,4 @@ Source: TanStack/table:packages/match-sorter-utils/src/index.ts
 
 ## API Discovery
 
-Inspect `node_modules/@tanstack/match-sorter-utils/src/index.ts` for the installed `RankItemOptions`, accessor attributes, ranking constants, and comparator behavior. For TanStack Table metadata integration, load the global-filtering and sorting skills.
+Inspect `node_modules/@tanstack/match-sorter-utils/dist/index.d.ts` for the installed `RankItemOptions`, accessor attributes, ranking constants, and comparator behavior. For TanStack Table metadata integration, load the global-filtering and sorting skills.

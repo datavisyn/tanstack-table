@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { FlexRender, createColumnHelper, useTable } from '@tanstack/vue-table'
+import {
+  FlexRender,
+  createColumnHelper,
+  filterFn_inNumberRange,
+  useTable,
+} from '@tanstack/vue-table'
 import { ref } from 'vue'
 import Filter from './Filter.vue'
 import { appFeatures } from './tableHelper'
@@ -44,6 +49,7 @@ const columns = ref(
     }),
     columnHelper.accessor('status', {
       header: 'Status',
+      filterFn: 'equalsString', // filterFn string to pick from filterFns
       meta: {
         filterVariant: 'select',
       },
@@ -53,6 +59,8 @@ const columns = ref(
       meta: {
         filterVariant: 'range',
       },
+      filterFn: filterFn_inNumberRange, // or just reference static filterFn from import
+      // you could also write your own custom filter function here
     }),
   ]),
 )
@@ -63,6 +71,16 @@ const table = useTable({
   get columns() {
     return columns.value
   },
+  // Column faceting has no table-level options; configure its row-model factories in `features`.
+  // initialState: { columnFilters: [{ id: 'firstName', value: 'Jane' }] }, // set filters once
+  // atoms: { columnFilters: columnFiltersAtom }, // preferred: own column filters with an external atom
+  // state: { columnFilters }, // classic controlled state; pair with onColumnFiltersChange
+  // onColumnFiltersChange: setColumnFilters,
+  // enableFilters: false, // disable all column and global filtering; default true
+  // enableColumnFilters: false, // disable per-column filters; default true
+  // filterFromLeafRows: true, // keep parents whose descendants match; default filters from parents down
+  // maxLeafRowFilterDepth: 1, // only filter through this nested-row depth; default 100
+  // manualFiltering: true, // pass data that is already filtered, for example from a server
   debugTable: true,
   debugHeaders: true,
   debugColumns: false,

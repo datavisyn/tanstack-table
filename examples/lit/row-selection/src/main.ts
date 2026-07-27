@@ -7,7 +7,8 @@ import {
   columnFilteringFeature,
   createFilteredRowModel,
   createPaginatedRowModel,
-  filterFns,
+  filterFn_inNumberRange,
+  filterFn_includesString,
   rowPaginationFeature,
   rowSelectionFeature,
   tableFeatures,
@@ -22,7 +23,10 @@ const features = tableFeatures({
   rowPaginationFeature,
   filteredRowModel: createFilteredRowModel(),
   paginatedRowModel: createPaginatedRowModel(),
-  filterFns,
+  filterFns: {
+    includesString: filterFn_includesString,
+    inNumberRange: filterFn_inNumberRange,
+  },
 })
 
 const columns: Array<ColumnDef<typeof features, Person>> = [
@@ -39,7 +43,9 @@ const columns: Array<ColumnDef<typeof features, Person>> = [
     cell: ({ row }) => html`
       <input
         type="checkbox"
-        @change="${row.getToggleSelectedHandler()}"
+        @click="${row.getToggleSelectedHandler({
+          // selectChildren: false
+        })}"
         .checked="${row.getIsSelected()}"
         ?disabled="${!row.getCanSelect()}"
         .indeterminate="${row.getIsSomeSelected()}"
@@ -94,6 +100,14 @@ class LitTableExample extends LitElement {
         data: this._data,
         columns,
         enableRowSelection: true,
+        // initialState: { rowSelection: { '0': true } }, // select rows on first render
+        // atoms: { rowSelection: rowSelectionAtom }, // preferred: own selection state with an external atom
+        // state: { rowSelection }, // classic controlled state; pair with onRowSelectionChange
+        // onRowSelectionChange: setRowSelection,
+        // enableMultiRowSelection: false, // allow only one selected row at a time; default true
+        // enableRowRangeSelection: false, // disable Shift-click range selection; default true
+        // enableSubRowSelection: false, // do not select a parent's subrows with it; default true
+        // isRowRangeSelectionEvent: event => Boolean(event.metaKey), // use Meta instead of Shift
         debugTable: true,
       },
       (state) => ({
