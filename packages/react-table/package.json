@@ -53,6 +53,7 @@
   },
   "devDependencies": {
     "@eslint-react/eslint-plugin": "^5.9.2",
+    "@tanstack/table-core": "workspace:*",
     "@types/react": "^19.2.17",
     "@vitejs/plugin-react": "^6.0.3",
     "eslint-plugin-react-compiler": "19.1.0-rc.2",
@@ -60,7 +61,7 @@
     "react": "^19.2.7"
   },
   "peerDependencies": {
-    "@tanstack/table-core": "workspace:*",
+    "@tanstack/table-core": "^9.0.0-beta.5",
     "react": ">=18"
   }
 }
