@@ -178,6 +178,11 @@ export function createSortedRowModelUnmemoized<
         changed = true
       }
 
+      // Take this row's slot before descending, so a parent stays ahead of
+      // its own sub-rows in flatRows.
+      const flatIndex = sortedFlatRows.length
+      sortedFlatRows.push(row)
+
       if (row.subRows.length) {
         const sortedSubRows = sortData(row.subRows)
 
@@ -187,13 +192,9 @@ export function createSortedRowModelUnmemoized<
           copyInstancePropertiesWithoutMemos(cloned, row)
           cloned.subRows = sortedSubRows.rows
           sortedData[i] = cloned
-          sortedFlatRows.push(cloned)
+          sortedFlatRows[flatIndex] = cloned
           changed = true
-        } else {
-          sortedFlatRows.push(row)
         }
-      } else {
-        sortedFlatRows.push(row)
       }
     }
 

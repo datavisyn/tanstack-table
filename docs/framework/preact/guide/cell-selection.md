@@ -71,7 +71,7 @@ type CellSelectionState = Array<CellSelectionRange>
 
 The `anchor` corner is where the selection started and stays put. The `focus` corner is the one that moves while dragging or Shift-extending. Storing both corners, rather than a normalized min/max rectangle, is what makes Shift-extend and "collapse back to the active cell" possible.
 
-Ranges are applied in order. An omitted `operation` is an inclusion for backward compatibility; an `exclude` range subtracts its rectangle from the selection produced so far. This compact operation log means a “select all except these cells” interaction does not build a map with one entry per selected cell.
+Ranges are applied in order. An omitted `operation` is an inclusion for backward compatibility; an `exclude` range subtracts its rectangle from the selection produced so far. This compact operation log means a "select all except these cells" interaction does not build a map with one entry per selected cell.
 
 ### Manage Cell Selection State
 
@@ -112,7 +112,8 @@ const table = useTable({
 })
 ```
 
-> Note: a drag emits one change per cell boundary the pointer crosses, so `onCellSelectionChange` fires repeatedly during a drag. If you are syncing selection to a server or a URL, debounce it or commit on `mouseup`.
+> [!NOTE]
+> a drag emits one change per cell boundary the pointer crosses, so `onCellSelectionChange` fires repeatedly during a drag. If you are syncing selection to a server or a URL, debounce it or commit on `mouseup`.
 
 ### Useful Row Ids
 
@@ -229,7 +230,8 @@ function getCellClassName(cell) {
 }
 ```
 
-> Tip: draw the outline with `box-shadow: inset ...` rather than `border`. On a `border-collapse` table a thicker border widens the shared grid line, which makes rows change height as cells become selected. A box-shadow never affects layout.
+> [!TIP]
+> draw the outline with `box-shadow: inset ...` rather than `border`. On a `border-collapse` table a thicker border widens the shared grid line, which makes rows change height as cells become selected. A box-shadow never affects layout.
 
 ### Keyboard Navigation
 

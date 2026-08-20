@@ -12,7 +12,7 @@ Use getters for reactive inputs such as `data` when passing Svelte state to `cre
 
 ### Fuzzy Filtering Setup
 
-Here's how you set up your table to use fuzzy filtering features. Adding the fuzzy filtering feature enables the related APIs. Additionally, if using client-side fuzzy filtering and sorting, you also need to set up `filteredRowModel` and `sortedRowModel` after their associated features because row model slots are type-checked.
+Here's how you set up your table to use fuzzy filtering features. Adding the fuzzy filtering feature enables the related APIs. If you use client-side fuzzy filtering and sorting, also set up `filteredRowModel` and `sortedRowModel` after their features, since row model slots are type-checked.
 
 ```ts
 import {
@@ -31,7 +31,9 @@ const features = tableFeatures({
   globalFilteringFeature,
   rowSortingFeature,
   filteredRowModel: createFilteredRowModel(), // if using client-side filtering
+  // manualFiltering: true, // if using manual server-side filtering
   sortedRowModel: createSortedRowModel(), // if using client-side sorting
+  // manualSorting: true, // if using manual server-side sorting
   filterFns: { fuzzy: fuzzyFilter },
   sortFns: { fuzzy: fuzzySort },
   filterMeta: metaHelper<FuzzyFilterMeta>(),
@@ -46,7 +48,8 @@ const table = createTable({
 })
 ```
 
-> **Note:** The `filterFns` and `sortFns` registries above list only the custom `fuzzy` functions this guide uses. Spreading the entire built-in registries (`filterFns: { ...filterFns, fuzzy: fuzzyFilter }`) still works, but it puts every built-in function in your bundle. Register just the functions you use, or pass functions directly to the `filterFn` and `sortFn` column options with no registration.
+> [!NOTE]
+> The `filterFns` and `sortFns` registries above list only the custom `fuzzy` functions this guide uses. Spreading the entire built-in registries (`filterFns: { ...filterFns, fuzzy: fuzzyFilter }`) still works, but it puts every built-in function in your bundle. Register just the functions you use, or pass functions directly to the `filterFn` and `sortFn` column options with no registration.
 
 ## Fuzzy Filtering (Svelte) Guide
 
@@ -56,8 +59,9 @@ You can implement client-side fuzzy filtering by defining a custom filter functi
 
 Fuzzy filtering is mostly used with global filtering, but you can also apply it to individual columns. We will discuss how to implement fuzzy filtering for both cases.
 
-> **Note:** You will need to install the `@tanstack/match-sorter-utils` library to use fuzzy filtering.
-> TanStack Match Sorter Utils is a fork of [match-sorter](https://github.com/kentcdodds/match-sorter) by Kent C. Dodds. It was forked in order to work better with TanStack Table's row by row filtering approach.
+> [!NOTE]
+> You will need to install the `@tanstack/match-sorter-utils` library to use fuzzy filtering.
+> TanStack Match Sorter Utils is a fork of [match-sorter](https://github.com/kentcdodds/match-sorter) by Kent C. Dodds. It was forked to work better with TanStack Table's row by row filtering approach.
 
 Using the match-sorter libraries is optional, but the TanStack Match Sorter Utils library provides a great way to both fuzzy filter and sort by the rank information it returns, so that rows can be sorted by their closest matches to the search query.
 
@@ -209,4 +213,5 @@ You can then pass this sorting function directly to the `sortFn` option of the c
 }
 ```
 
-> **Note:** Unlike `filterFn: 'fuzzy'` above, `fuzzySort` is passed as a function rather than a string. A string reference like `sortFn: 'fuzzySort'` would only work if you also registered the function in the `sortFns` slot of `tableFeatures` (e.g. `sortFns: { fuzzySort }`). Passing the function directly skips registration.
+> [!NOTE]
+> Unlike `filterFn: 'fuzzy'` above, `fuzzySort` is passed as a function rather than a string. A string reference like `sortFn: 'fuzzySort'` would only work if you also registered the function in the `sortFns` slot of `tableFeatures` (e.g. `sortFns: { fuzzySort }`). Passing the function directly skips registration.

@@ -13,7 +13,7 @@ Want to skip to the implementation? Check out these Octane examples:
 
 ### Column Filtering Setup
 
-Here's how you set up your table to use column filtering features. Adding the column filtering feature enables the related APIs. Additionally, if using client-side filtering, you also need to set up `filteredRowModel` after its associated feature because row model slots are type-checked.
+Here's how you set up your table to use column filtering features. Adding the column filtering feature enables the related APIs. If you use client-side filtering, also set up `filteredRowModel` after its feature, since row model slots are type-checked.
 
 ```tsx
 import {
@@ -28,6 +28,7 @@ import {
 const features = tableFeatures({
   columnFilteringFeature,
   filteredRowModel: createFilteredRowModel(), // if using client-side filtering
+  // manualFiltering: true, // if using manual server-side filtering
   filterFns: {
     includesString: filterFn_includesString,
     inNumberRange: filterFn_inNumberRange,
@@ -41,7 +42,8 @@ const table = useTable({
 })
 ```
 
-> **Note:** The `filterFns` registry above lists only the built-in filter functions this table uses. Spreading the entire built-in `filterFns` registry (`filterFns: { ...filterFns }`) still works, but it puts every built-in filter function in your bundle. Register just the functions you use, or pass a function directly to the `filterFn` column option with no registration at all.
+> [!NOTE]
+> The `filterFns` registry above lists only the built-in filter functions this table uses. Spreading the entire built-in `filterFns` registry (`filterFns: { ...filterFns }`) still works, but it puts every built-in filter function in your bundle. Register just the functions you use, or pass a function directly to the `filterFn` column option with no registration at all.
 
 ## Column Filtering (Octane) Guide
 
@@ -56,6 +58,8 @@ TanStack table supports both client-side and manual server-side filtering. This 
 Filtering should operate over the same dataset as sorting and pagination. Use client-side filtering when the browser has the complete dataset; use server-side filtering when it has only a page or another subset, unless filtering just the loaded rows is intentional.
 
 See the [Client-Side vs Server-Side Guide](../../../guide/client-side-vs-server-side) for the full decision framework, performance factors, and guidance for combining data operations.
+
+The client-side filtered row model also invokes the page-index auto-reset hook when column filtering inputs change. Whether the page index resets depends on the `autoResetPageIndex`, `autoResetAll`, and `manualPagination` options. If filtering is manual and this row model is omitted or bypassed, a column filter state change does not invoke that hook, so reset server-side pagination in the filter change handler when needed.
 
 ### Manual Server-Side Filtering
 
@@ -74,7 +78,8 @@ const table = useTable({
 })
 ```
 
-> **Note:** When using manual filtering, many of the options that are discussed in the rest of this guide will have no effect. When `manualFiltering` is set to `true`, the table instance will not apply any filtering logic to the rows that are passed to it. Instead, it will assume that the rows are already filtered and will use the `data` that you pass to it as-is.
+> [!NOTE]
+> When using manual filtering, many of the options that are discussed in the rest of this guide will have no effect. When `manualFiltering` is set to `true`, the table instance will not apply any filtering logic to the rows that are passed to it. Instead, it will assume that the rows are already filtered and will use the `data` that you pass to it as-is.
 
 ### Client-Side Filtering
 
@@ -201,7 +206,8 @@ const table = useTable({
 })
 ```
 
-> **NOTE**: Do not use both `initialState.columnFilters` and `state.columnFilters` at the same time, as the controlled `state.columnFilters` value will override the `initialState.columnFilters`.
+> [!NOTE]
+> Do not use both `initialState.columnFilters` and `state.columnFilters` at the same time, as the controlled `state.columnFilters` value will override the `initialState.columnFilters`.
 
 ### FilterFns
 
@@ -232,7 +238,8 @@ You can also define your own custom filter functions, either inline as the `filt
 
 #### Custom Filter Functions
 
-> **Note:** These filter functions only run during client-side filtering.
+> [!NOTE]
+> These filter functions only run during client-side filtering.
 
 Whether you register a custom filter function in the `filterFns` slot on `tableFeatures` or pass it directly as a `filterFn` column option, it should have the following signature:
 
@@ -334,7 +341,7 @@ const startsWithFilterFn = constructFilterFn({
 })
 ```
 
-Keeping the comparison in `filter` and the normalization in the resolvers pays off when you need a variant of an existing filter function: the definition is attached to the returned function, so you can spread any filter function built with `constructFilterFn` and override only what differs. For example, a version of `includesString` that also ignores diacritics (so a search for "eric" matches "Éric"):
+Keeping the comparison in `filter` and the normalization in the resolvers pays off when you need a variant of an existing filter function. The definition is attached to the returned function, so you can spread any filter function built with `constructFilterFn` and override only what differs. For example, a version of `includesString` that also ignores diacritics (so a search for "eric" matches "Éric"):
 
 ```tsx
 const normalize = (value: unknown) =>
@@ -352,7 +359,8 @@ const includesStringIgnoreDiacritics = constructFilterFn({
 
 Register the variant by name in the `filterFns` registry or pass it directly to the `filterFn` column option, just like any other custom filter function.
 
-> **Note:** The table applies `resolveFilterValue` once per filter before any rows are tested. If you ever call a filter function directly (outside of a table), resolve the filter value yourself: `myFilterFn(row, columnId, myFilterFn.resolveFilterValue?.(rawValue) ?? rawValue)`.
+> [!NOTE]
+> The table applies `resolveFilterValue` once per filter before any rows are tested. If you ever call a filter function directly (outside of a table), resolve the filter value yourself: `myFilterFn(row, columnId, myFilterFn.resolveFilterValue?.(rawValue) ?? rawValue)`.
 
 ### Customize Column Filtering
 

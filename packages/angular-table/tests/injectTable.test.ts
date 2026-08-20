@@ -17,6 +17,21 @@ import { injectTable } from '../src'
 import type { PaginationState } from '../src'
 
 describe('injectTable', () => {
+  test('evaluates options once while constructing the table', () => {
+    const options = vi.fn(() => ({
+      data: [],
+      features: stockFeatures,
+      columns: [],
+    }))
+    const table = TestBed.runInInjectionContext(() => injectTable(options))
+
+    expect(options).not.toHaveBeenCalled()
+
+    void table.options
+
+    expect(options).toHaveBeenCalledTimes(1)
+  })
+
   test('should support required signal inputs', async () => {
     type Data = { id: string; title: string }
 
@@ -146,5 +161,30 @@ describe('injectTable', () => {
         expect(table.getCoreRowModel()).toBe(initialCoreRowModel)
       })
     })
+  })
+
+  // Fixes https://github.com/TanStack/table/issues/6530
+  test('does not drop an options update before the effect first runs', () => {
+    type Data = { id: string }
+
+    const initialData: Array<Data> = []
+    const updatedData: Array<Data> = [{ id: '1' }]
+    const data = signal(initialData)
+
+    const table = TestBed.runInInjectionContext(() =>
+      injectTable(() => ({
+        data: data(),
+        columns: [],
+        features: stockFeatures,
+        getRowId: (row) => row.id,
+      })),
+    )
+
+    expect(table.options.data).toBe(initialData)
+
+    data.set(updatedData)
+    TestBed.tick()
+
+    expect(table.options.data).toBe(updatedData)
   })
 })

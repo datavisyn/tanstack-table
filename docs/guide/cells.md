@@ -34,7 +34,8 @@ Every cell stores a reference to its parent [row](./rows) and [column](./columns
 
 The recommended way to access data values from a cell is to use either the `cell.getValue` or `cell.renderValue` APIs. Using either of these APIs will cache the results of the accessor functions and keep rendering efficient. The only difference between the two is that `cell.renderValue` will return either the value or the `renderFallbackValue` if the value is undefined, whereas `cell.getValue` will return the value or `undefined` if the value is undefined.
 
-> Note: The `cell.getValue` and `cell.renderValue` APIs are shortcuts for the `row.getValue` and `row.renderValue` APIs, respectively.
+> [!NOTE]
+> The `cell.getValue` and `cell.renderValue` APIs are shortcuts for the `row.getValue` and `row.renderValue` APIs, respectively.
 
 ```js
 // Access the value for this cell's own column
@@ -61,7 +62,7 @@ Depending on the features that you are using for your table, there are dozens mo
 
 You can just use the `cell.renderValue` or `cell.getValue` APIs to render the cells of your table. However, these APIs will only spit out the raw cell values (from accessor functions). If you are using the `cell: () => JSX` column definition options, you will want to use the `flexRender` API utility from your adapter.
 
-Using the `flexRender` API will allow the cell to be rendered correctly with any extra markup or JSX and it will call the callback function with the correct parameters.
+The `flexRender` API renders the cell correctly with any extra markup or JSX and calls the callback function with the correct parameters.
 
 ```jsx
 import { flexRender } from '@tanstack/react-table'

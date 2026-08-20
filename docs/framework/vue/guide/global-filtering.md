@@ -13,7 +13,7 @@ Vue refs can be passed directly where the adapter expects reactive table options
 
 ### Global Filtering Setup
 
-Here's how you set up your table to use global filtering features. Global filtering depends on column filtering, so add `columnFilteringFeature` before `globalFilteringFeature`. Adding the global filtering feature enables the related APIs. Additionally, if using client-side filtering, you also need to set up `filteredRowModel` after its associated feature because row model slots are type-checked.
+Here's how you set up your table to use global filtering features. Global filtering depends on column filtering, so add `columnFilteringFeature` before `globalFilteringFeature`. Adding the global filtering feature enables the related APIs. If you use client-side filtering, also set up `filteredRowModel` after its feature, since row model slots are type-checked.
 
 ```ts
 import {
@@ -29,6 +29,7 @@ const features = tableFeatures({
   columnFilteringFeature,
   globalFilteringFeature,
   filteredRowModel: createFilteredRowModel(), // if using client-side filtering
+  // manualFiltering: true, // if using manual server-side filtering
   filterFns: { includesString: filterFn_includesString },
 })
 
@@ -39,7 +40,8 @@ const table = useTable({
 })
 ```
 
-> **Note:** The `filterFns` registry above lists only the built-in filter function this table uses. Spreading the entire built-in `filterFns` registry (`filterFns: { ...filterFns }`) still works, but it puts every built-in filter function in your bundle. Register just the functions you use, or pass a function directly to the `globalFilterFn` option with no registration at all.
+> [!NOTE]
+> The `filterFns` registry above lists only the built-in filter function this table uses. Spreading the entire built-in `filterFns` registry (`filterFns: { ...filterFns }`) still works, but it puts every built-in filter function in your bundle. Register just the functions you use, or pass a function directly to the `globalFilterFn` option with no registration at all.
 
 ## Global Filtering (Vue) Guide
 
@@ -52,6 +54,8 @@ This guide will focus on global filtering, which is a filter that is applied acr
 Filtering should operate over the same dataset as sorting and pagination. Use client-side filtering when the browser has the complete dataset; use server-side filtering when it has only a page or another subset, unless filtering just the loaded rows is intentional.
 
 See the [Client-Side vs Server-Side Guide](../../../guide/client-side-vs-server-side) for the full decision framework, performance factors, and guidance for combining data operations.
+
+The client-side filtered row model also invokes the page-index auto-reset hook when global filtering inputs change. Whether the page index resets depends on the `autoResetPageIndex`, `autoResetAll`, and `manualPagination` options. If filtering is manual and this row model is omitted or bypassed, a global filter state change does not invoke that hook, so reset server-side pagination in the filter change handler when needed.
 
 ### Manual Server-Side Global Filtering
 
@@ -111,7 +115,7 @@ const table = useTable({
 
 ### Global Filter Function
 
-The `globalFilterFn` option allows you to specify the filter function that will be used for global filtering. The filter function can be a string that references a filter function (built-in or custom) registered in the `filterFns` slot of `tableFeatures`, or a filter function passed directly.
+The `globalFilterFn` option sets the filter function used for global filtering. The filter function can be a string that references a filter function (built-in or custom) registered in the `filterFns` slot of `tableFeatures`, or a filter function passed directly.
 
 ```ts
 const table = useTable({
@@ -201,7 +205,8 @@ TanStack table will not add a global filter input UI to your table. You should m
 
 If you want to use a custom global filter function, you can define the function and pass it to the `globalFilterFn` option.
 
-> **Note:** It is often a popular idea to use fuzzy filtering functions for global filtering. This is discussed in the [Fuzzy Filtering Guide](./fuzzy-filtering).
+> [!NOTE]
+> It is often a popular idea to use fuzzy filtering functions for global filtering. This is discussed in the [Fuzzy Filtering Guide](./fuzzy-filtering).
 
 ```ts
 const customFilterFn = (row, columnId, filterValue) => {
@@ -231,7 +236,8 @@ const table = useTable({
 })
 ```
 
-> NOTE: Do not use both `initialState.globalFilter` and a controlled `globalFilter` (via `atoms` or `state`) at the same time, as the controlled value will override `initialState.globalFilter`.
+> [!NOTE]
+> Do not use both `initialState.globalFilter` and a controlled `globalFilter` (via `atoms` or `state`) at the same time, as the controlled value will override `initialState.globalFilter`.
 
 ### Disable Global Filtering
 

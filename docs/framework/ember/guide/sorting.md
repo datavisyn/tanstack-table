@@ -10,7 +10,7 @@ Want to skip to the implementation? Check out these Ember examples:
 
 ### Sorting Setup
 
-Here's how you set up your table to use sorting features. Adding the sorting feature enables the related APIs. Additionally, if using client-side sorting, you also need to set up `sortedRowModel` after its associated feature because row model slots are type-checked.
+Here's how you set up your table to use sorting features. Adding the sorting feature enables the related APIs. If you use client-side sorting, also set up `sortedRowModel` after its feature, since row model slots are type-checked.
 
 ```gts
 import {
@@ -26,6 +26,7 @@ import {
 const features = tableFeatures({
   rowSortingFeature,
   sortedRowModel: createSortedRowModel(), // if using client-side sorting
+  // manualSorting: true, // if using manual server-side sorting
   sortFns: {
     alphanumeric: sortFn_alphanumeric,
     text: sortFn_text,
@@ -41,7 +42,8 @@ table = useTable(() => ({
 }))
 ```
 
-> **NOTE**: Spreading the entire built-in registry (`sortFns: { ...sortFns }`) still works, but it puts every built-in sorting function in your bundle. Registering just the functions you use, or passing a function directly to the `sortFn` column option, is recommended. The default `sortFn: 'auto'` resolves to `alphanumeric`, `text`, or `datetime` from the registry based on the column's data type, so register the ones your columns rely on.
+> [!NOTE]
+> Spreading the entire built-in registry (`sortFns: { ...sortFns }`) still works, but it puts every built-in sorting function in your bundle. Registering just the functions you use, or passing a function directly to the `sortFn` column option, is recommended. The default `sortFn: 'auto'` resolves to `alphanumeric`, `text`, or `datetime` from the registry based on the column's data type, so register the ones your columns rely on.
 
 ## Sorting (Ember) Guide
 
@@ -63,7 +65,7 @@ Since the sorting state is an array, it is possible to sort by multiple columns 
 
 #### Accessing Sorting State
 
-For reactive reads that should re-render your UI, read `table.store.state.sorting` from a getter or directly in a template; Glimmer tracks the read and re-renders when the slice changes. In event handlers or other non-render code, you can read the current snapshot with `table.atoms.sorting.get()`, but be aware that this read does not subscribe the component to future changes.
+For reactive reads that should re-render your UI, read `table.store.state.sorting` from a getter or directly in a template; Glimmer tracks the read and re-renders when the slice changes. In event handlers or other non-render code, you can read the current snapshot with `table.atoms.sorting.get()`, but this read does not subscribe the component to future changes.
 
 ```gts
 table = useTable(() => ({
@@ -147,13 +149,16 @@ table = useTable(() => ({
 }))
 ```
 
-> **NOTE**: Do not use both `initialState.sorting` and `state.sorting` at the same time, as the controlled `state.sorting` value will override the `initialState.sorting`.
+> [!NOTE]
+> Do not use both `initialState.sorting` and `state.sorting` at the same time, as the controlled `state.sorting` value will override the `initialState.sorting`.
 
 ### Client-Side vs Server-Side Sorting
 
 Sorting should operate over the same dataset as filtering and pagination. If the server returns only a page or filtered subset, client-side sorting sorts only those loaded rows, not the full dataset.
 
 See the [Client-Side vs Server-Side Guide](../../../guide/client-side-vs-server-side) for the full decision framework and the cases where mixing client-side and server-side operations is intentional.
+
+The client-side sorted row model also invokes the page-index auto-reset hook when sorting inputs change. Whether the page index resets depends on the `autoResetPageIndex`, `autoResetAll`, and `manualPagination` options. If sorting is manual and this row model is omitted or bypassed, a sorting state change does not invoke that hook, so reset server-side pagination in the sorting change handler when needed.
 
 ### Manual Server-Side Sorting
 
@@ -182,7 +187,8 @@ table = useTable(() => ({
 
 Hoisting the sorting state into your own scope (with an external atom or the `state.sorting` plus `onSortingChange` pattern) is covered in the [Controlled Sorting State](#controlled-sorting-state) section above.
 
-> **NOTE**: When `manualSorting` is set to `true`, the table will assume that the data that you provide is already sorted, and will not apply any sorting to it.
+> [!NOTE]
+> When `manualSorting` is set to `true`, the table will assume that the data that you provide is already sorted, and will not apply any sorting to it.
 
 ### Client-Side Sorting
 
@@ -248,7 +254,8 @@ const myCustomSortFn: SortFn<TFeatures, TData> = (
 }
 ```
 
-> Note: The comparison function does not need to take whether or not the column is in descending or ascending order into account. The row models will take care of that logic. `sortFn` functions only need to provide a consistent comparison.
+> [!NOTE]
+> The comparison function does not need to take whether or not the column is in descending or ascending order into account. The row models will take care of that logic. `sortFn` functions only need to provide a consistent comparison.
 
 Every sorting function receives 2 rows and a column ID and is expected to compare the two rows using the column ID to return `-1`, `0`, or `1` in ascending order. Here's a cheat sheet:
 
@@ -317,7 +324,7 @@ Sorting functions support an optional "hanging" property:
 
 - `sortFn.resolveDataValue` - normalizes each row's value before the two sides are compared. It is honored by every sorting function built with the `constructSortFn` helper, which includes all built-in sorting functions.
 
-The `constructSortFn` helper builds a sorting function from a value-level comparator (`sort`) plus that optional resolver. Keeping the comparison in `sort` and the normalization in `resolveDataValue` means a variant of an existing sorting function only has to swap the resolver: the definition is attached to the returned function, so you can spread any sorting function built with `constructSortFn` and override only what differs.
+The `constructSortFn` helper builds a sorting function from a value-level comparator (`sort`) plus that optional resolver. Keeping the comparison in `sort` and the normalization in `resolveDataValue` means a variant of an existing sorting function only has to swap the resolver. The definition is attached to the returned function, so you can spread any sorting function built with `constructSortFn` and override only what differs.
 
 For example, a version of `alphanumeric` that ignores diacritics, so that "Éric Bernard" sorts next to "Eric Brandon" instead of after "Zak O'Sullivan":
 
@@ -404,7 +411,8 @@ table = useTable(() => ({
 }))
 ```
 
-> **NOTE**: You may want to explicitly set the `sortDescFirst` column option on any columns that have nullable values. The table may not be able to properly determine if a column is a number or a string if it contains nullable values.
+> [!NOTE]
+> You may want to explicitly set the `sortDescFirst` column option on any columns that have nullable values. The table may not be able to properly determine if a column is a number or a string if it contains nullable values.
 
 #### Invert Sorting
 
@@ -432,7 +440,8 @@ If not specified, the default value for `sortUndefined` is `1`, and undefined va
 - `-1` - Undefined values will be sorted with higher priority (ascending) (if ascending, undefined will appear on the beginning of the list)
 - `1` - Undefined values will be sorted with lower priority (descending) (if ascending, undefined will appear on the end of the list)
 
-> NOTE: `'first'` and `'last'` options are available in v9.
+> [!NOTE]
+> `'first'` and `'last'` options are available in v9.
 
 ```ts
 const columns = columnHelper.columns([

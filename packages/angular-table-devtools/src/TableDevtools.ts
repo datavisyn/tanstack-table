@@ -1,16 +1,19 @@
-import { TableDevtoolsCore } from '@tanstack/table-devtools'
+import {
+  TableDevtoolsCore,
+  resolveDevtoolsPanelProps,
+  seedDevtoolsFontStyle,
+} from '@tanstack/table-devtools'
 import { computed, effect } from '@angular/core'
 import type { DevtoolsPanelProps } from '@tanstack/devtools-utils/angular'
 
+seedDevtoolsFontStyle()
+
 export interface TableDevtoolsAngularInit extends Partial<DevtoolsPanelProps> {}
 
-function resolvePanelProps(
+export function resolvePanelProps(
   props?: TableDevtoolsAngularInit,
 ): DevtoolsPanelProps {
-  return {
-    theme: props?.theme ?? 'dark',
-    devtoolsOpen: props?.devtoolsOpen ?? false,
-  }
+  return resolveDevtoolsPanelProps(props)
 }
 
 type TableDevtoolsPanelComponent = () => (
@@ -20,6 +23,7 @@ type TableDevtoolsPanelComponent = () => (
 
 export const TableDevtoolsPanel: TableDevtoolsPanelComponent =
   () => (props, host) => {
+    seedDevtoolsFontStyle(host.ownerDocument)
     const panel = host.ownerDocument.createElement('div')
     panel.style.height = '100%'
     host.appendChild(panel)

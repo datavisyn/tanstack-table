@@ -59,7 +59,8 @@ There are a few properties on `header` objects that are only useful if the heade
 - `placeholderId`: The unique identifier for the placeholder header.
 - `subHeaders`: The array of sub/child headers that belong to this header. Will be empty if the header is a leaf header.
 
-> Note: `header.index` refers to its index within the header group (row of headers), i.e. its position from left to right. It is not the same as `header.depth`, which refers to the header group "row index".
+> [!NOTE]
+> `header.index` refers to its index within the header group (row of headers), i.e. its position from left to right. It is not the same as `header.depth`, which refers to the header group "row index".
 
 ### Header Parent Objects
 
@@ -86,7 +87,7 @@ Since the `header` column option you defined can be either a string, JSX, or a f
 
 ### Header Row Spanning
 
-If your column tree is uneven (some leaf columns are nested deeper than others), each shallow leaf column produces a chain of placeholder headers above its real header. The placeholder at the top of the chain reports the chain's full `rowSpan`, and every header it covers reports a `rowSpan` of 0. To merge those header cells vertically, skip headers with a `rowSpan` of 0 and render everything else with the `rowSpan` attribute. Note that this replaces the usual `header.isPlaceholder` check: the spanning placeholder renders its column's header content instead of an empty cell.
+If your column tree is uneven (some leaf columns are nested deeper than others), each shallow leaf column produces a chain of placeholder headers above its real header. The placeholder at the top of the chain reports the chain's full `rowSpan`, and every header it covers reports a `rowSpan` of 0. To merge those header cells vertically, skip headers with a `rowSpan` of 0 and render everything else with the `rowSpan` attribute. Note that this replaces the usual `header.isPlaceholder` check. The spanning placeholder renders its column's header content instead of an empty cell.
 
 ```jsx
 {
@@ -100,6 +101,7 @@ If your column tree is uneven (some leaf columns are nested deeper than others),
 }
 ```
 
-> Note: This recipe is for the `<thead>` section only. Footer groups render the header rows in reverse order, which puts a spanning placeholder below the cells it would need to cover, so keep the `header.isPlaceholder` empty-cell pattern in the `<tfoot>` section.
+> [!NOTE]
+> This recipe is for the `<thead>` section only. Footer groups render the header rows in reverse order, which puts a spanning placeholder below the cells it would need to cover, so keep the `header.isPlaceholder` empty-cell pattern in the `<tfoot>` section.
 
 The body-cell equivalent of this convention lives in the optional `cellSpanningFeature`. See the [Cell Spanning Guide](../framework/react/guide/cell-spanning).

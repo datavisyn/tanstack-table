@@ -39,7 +39,7 @@ const table = createTable({
 
 ## Column Resizing (Alpine) Guide
 
-TanStack Table provides built-in column resizing state and APIs that allow you to easily implement column resizing in your table UI with a variety of options for UX and performance.
+TanStack Table provides built-in column resizing state and APIs for implementing column resizing in your table UI with a variety of options for UX and performance.
 
 Column resizing builds on column sizing. If you only need to define starting, minimum, or maximum widths, see the [Column Sizing Guide](./column-sizing).
 
@@ -402,6 +402,7 @@ Alpine.data('table', () => {
 </table>
 ```
 
-> Note: with the `() => ({})` selector, the `:class` binding on the resizer above will not update during a drag (the table is opted out of state-driven re-evaluation). The example instead toggles the `isResizing` class imperatively from a `table.atoms.columnResizing` subscription. Keeping the `:class` binding is fine if you accept the highlight only reflecting resize state on the next data-driven re-render.
+> [!NOTE]
+> with the `() => ({})` selector, the `:class` binding on the resizer above will not update during a drag (the table is opted out of state-driven re-evaluation). The example instead toggles the `isResizing` class imperatively from a `table.atoms.columnResizing` subscription. Keeping the `:class` binding is fine if you accept the highlight only reflecting resize state on the next data-driven re-render.
 
 If you follow these steps, you should see significant performance improvements while resizing columns.

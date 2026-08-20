@@ -6,7 +6,7 @@ metadata:
   type: lifecycle
   library: '@tanstack/angular-table'
   framework: angular
-  library_version: '9.0.0-beta.80'
+  library_version: '9.2.1'
 requires:
   - '@tanstack/table-core#migrate-v8-to-v9'
   - getting-started
@@ -105,7 +105,7 @@ Row, cell, column, header, and related methods now live on shared prototypes and
 
 ### Logical column pinning
 
-Beta.38 has no physical aliases.
+V9 has no physical aliases.
 
 | old                                                            | new                                                           |
 | -------------------------------------------------------------- | ------------------------------------------------------------- |

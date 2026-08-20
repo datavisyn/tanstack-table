@@ -2,30 +2,15 @@
 title: Migrating to TanStack Table V9 (Vue)
 ---
 
-> [!NOTE]
-> `v9.0.0-beta.48`/`beta.49` split aggregation out of `columnGroupingFeature` into a new `rowAggregationFeature` (`stockFeatures` includes both). If you declare features explicitly, add `rowAggregationFeature` anywhere you use `aggregationFns`, `aggregationFn`, `aggregatedCell`, `cell.getIsAggregated()`, or `column.getAggregationValue()`. Aggregation function definitions, row-depth selection, and the `getAggregationValue` signature also changed. See [Grouping and Aggregation](#grouping-and-aggregation) below.
-
----
-
-> [!NOTE]
-> `v9.0.0-beta.38` renames column pinning from physical `left`/`right` terminology to logical `start`/`end` terminology (in LTR layouts `start` usually means left; in RTL it usually means right). Update `columnPinning.left`/`right` to `columnPinning.start`/`end`, `column.pin('left' | 'right')` to `column.pin('start' | 'end')`, and `getLeft*`/`getRight*` APIs to `getStart*`/`getEnd*`. See [Column Pinning](#column-pinning) for the full mapping.
-
----
-
-> [!NOTE]
-> `v9.0.0-beta.10` moves row model factories and the `filterFns`/`sortFns`/`aggregationFns` registries onto the `features` object (the separate `rowModels` option is gone, and the factories no longer take arguments). See [Row Model Factories](#row-model-factories) for the new shape.
-
----
-
 ## What's New in TanStack Table V9
 
-TanStack Table V9 is a major release with significant internal architectural improvements while maintaining the core table logic you're familiar with. Here are the key changes:
+TanStack Table V9 delivers major performance improvements, hundreds of bug fixes, new and refreshed features, and optional helpers for composing and managing tables. Despite the scale of the release, the headless model, core table logic, column definitions, and rendering patterns remain familiar. Here are the key changes:
 
 ### 1. Better Performance
 
 - **Lower memory usage**: The core architecture now shares more behavior across table objects, with some large-table scenarios seeing up to 90% memory savings.
 - **Faster client-side row models**: Sorting, filtering, and aggregation paths have improved algorithms and memoization, with many scenarios seeing up to 40-70% speed improvements.
-- **Better column resizing performance**: Column resizing also gets significant performance improvements from the same architectural and memoization work.
+- **Better column resizing performance**: The same architectural and memoization work also speeds up column resizing.
 
 ### 2. State Management Overhaul
 
@@ -35,7 +20,7 @@ TanStack Table V9 is a major release with significant internal architectural imp
 
 ### 3. Type-Safety Improvements
 
-- **New and revamped type helpers**: New type helpers help define columns, custom filters, sorts, aggregations, column and table meta, shared table options and components, and more.
+- **New and revamped type helpers**: There are helpers for defining columns, custom filters, sorts, aggregations, column and table meta, shared table options and components, and more.
 - **Per-table meta types**: `tableMeta`, `columnMeta`, and `filterMeta` slots let you type meta for a specific table instead of globally augmenting shared interfaces. **No more global declaration merging required!**
 - **Feature-gated APIs**: APIs only exist when their feature is registered, and `tableFeatures()` validates feature prerequisites at the type level.
 
@@ -52,10 +37,18 @@ TanStack Table V9 is a major release with significant internal architectural imp
 
 ### 6. New and Refreshed Features
 
-- **New features**: `cellSelectionFeature` adds spreadsheet-style rectangular cell range selection, with drag, Shift-extend, and multiple disjoint ranges. See the [Cell Selection Guide](./cell-selection.md).
-- **Cell and header spanning**: the new `cellSpanningFeature` merges body cells across rows and columns (`spanRows` / `spanColumns`, with span-aware cell selection), and header groups now compute `header.rowSpan` so shallow columns can span header rows. See the [Cell Spanning Guide](./cell-spanning.md).
-- **More capable features**: Aggregation, Row Selection, Column Pinning, and Column Resizing have all been made more feature rich (multiple aggregation definitions per column, Shift range selection, logical `start`/`end` pinning, and more).
-- **New core APIs**: New table and row APIs (like `table.getMaxSubRowDepth()`, `row.getDisplayIndex()`) round out the core feature set.
+- **New Features**
+  - **Cell Selection**: `cellSelectionFeature` adds spreadsheet-style rectangular cell range selection, with drag, Shift-extend, and multiple disjoint ranges. See the [Cell Selection Guide](./cell-selection.md).
+  - **Cell Spanning**: `cellSpanningFeature` merges body cells across rows and columns (`spanRows` / `spanColumns`, with span-aware cell selection), and header groups now compute `header.rowSpan` so shallow columns can span header rows. See the [Cell Spanning Guide](./cell-spanning.md).
+- **Refreshed Features**
+  - **More capable features**: Aggregation, Row Selection, Column Pinning, and Column Resizing have all been made more feature rich (multiple aggregation definitions per column, Shift range selection, logical `start`/`end` pinning, and more).
+  - **New core APIs**: New table and row APIs (like `table.getMaxSubRowDepth()`, `row.getDisplayIndex()`) round out the core feature set.
+
+### 7. Modern Builds
+
+- **ESM-only**: UMD and CJS builds have been dropped. Packages ship as modern ESM.
+- **TypeScript target `ES2022`**: Compiled output now targets ES2022.
+- **Smaller install size**: Published packages no longer ship `src` or source maps, which reduces install footprint.
 
 ### The Good News: Most Table Logic Is Still Familiar
 
@@ -243,7 +236,7 @@ const table = useTable({
 
 #### Prefer Individual Fn Imports Over Full Registries
 
-The `filterFns`, `sortFns`, and `aggregationFns` registry exports are now deprecated in favor of importing individual `filterFn_*`, `sortFn_*`, and `aggregationFn_*` functions and registering only the ones you use (or passing functions directly in column definitions with no registration at all). The full registries still work, but spreading them puts every built-in function in your bundle. Keep in mind that string names, including the default `'auto'`, only resolve functions you have registered.
+The `filterFns`, `sortFns`, and `aggregationFns` registry exports are now deprecated in favor of importing individual `filterFn_*`, `sortFn_*`, and `aggregationFn_*` functions and registering only the ones you use (or passing functions directly in column definitions with no registration at all). The full registries still work, but spreading them puts every built-in function in your bundle. String names, including the default `'auto'`, only resolve functions you have registered.
 
 ```ts
 // Before: registers every built-in function
@@ -476,9 +469,9 @@ Do not provide both `atoms.pagination` and `state.pagination`; the atom owns tha
 
 ### Column Pinning
 
-`v9.0.0-beta.38` changes column pinning to use logical `start`/`end` terminology instead of physical `left`/`right` terminology. In LTR languages/layouts, `start` usually corresponds to left and `end` to right; in RTL languages/layouts, `start` usually corresponds to right and `end` to left. There are no deprecated aliases in beta.38.
+V9 changes column pinning to use logical `start`/`end` terminology instead of the physical `left`/`right` terminology used in V8. In LTR languages/layouts, `start` usually corresponds to left and `end` to right; in RTL languages/layouts, `start` usually corresponds to right and `end` to left. There are no deprecated aliases.
 
-| Before beta.38                       | beta.38+                             |
+| V8                                   | V9                                   |
 | ------------------------------------ | ------------------------------------ |
 | `columnPinning.left`                 | `columnPinning.start`                |
 | `columnPinning.right`                | `columnPinning.end`                  |

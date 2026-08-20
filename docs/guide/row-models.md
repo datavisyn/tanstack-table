@@ -77,7 +77,8 @@ const table = useTable({
 })
 ```
 
-> Note: the full built-in registries (`filterFns`, `sortFns`, `aggregationFns`) can still be spread into these slots, but they are deprecated because they pull every built-in function into your bundle. Register only the functions you use under their conventional string keys, or pass functions directly to the `filterFn`, `sortFn`, and `aggregationFn` column options with no registration at all. String keys, including the default `'auto'`, only resolve functions that are registered.
+> [!NOTE]
+> the full built-in registries (`filterFns`, `sortFns`, `aggregationFns`) can still be spread into these slots, but they are deprecated because they pull every built-in function into your bundle. Register only the functions you use under their conventional string keys, or pass functions directly to the `filterFn`, `sortFn`, and `aggregationFn` column options with no registration at all. String keys, including the default `'auto'`, only resolve functions that are registered.
 
 ## Function Registries
 
@@ -121,7 +122,7 @@ To use built-in functions by string name, import them individually (`filterFn_in
 
 ## Customize/Fork Row Models
 
-You don't have to use the exact row models that are provided by TanStack Table. If you need some advanced customization for certain row models, feel free to copy the [source code](https://github.com/TanStack/table/tree/beta/packages/table-core/src/features) for the row model you want to customize and modify it to your needs. Each row model factory lives alongside its feature (e.g. `row-sorting/createSortedRowModel.ts`), and the core row model lives in [`core/row-models`](https://github.com/TanStack/table/tree/beta/packages/table-core/src/core/row-models).
+You don't have to use the exact row models that are provided by TanStack Table. If you need some advanced customization for certain row models, feel free to copy the [source code](https://github.com/TanStack/table/tree/main/packages/table-core/src/features) for the row model you want to customize and modify it to your needs. Each row model factory lives alongside its feature (e.g. `row-sorting/createSortedRowModel.ts`), and the core row model lives in [`core/row-models`](https://github.com/TanStack/table/tree/main/packages/table-core/src/core/row-models).
 
 ## Using Row Models
 

@@ -4,14 +4,13 @@ title: Quick Start
 
 TanStack Table is a headless table library. It manages your table's state and logic (sorting, filtering, pagination, selection, and more) while you keep 100% control over the markup and styles. This page gets you from install to a rendering Svelte table, then shows how to layer on your first feature.
 
-> **IMPORTANT:** This version of `@tanstack/svelte-table` only supports Svelte 5 or newer. For Svelte 3/4 support, use version 8 of `@tanstack/svelte-table`.
+> [!IMPORTANT]
+> This version of `@tanstack/svelte-table` only supports Svelte 5 or newer. For Svelte 3/4 support, use version 8 of `@tanstack/svelte-table`.
 
 ## Installation
 
-TanStack Table v9 is currently published under the `beta` tag:
-
 ```bash
-npm install @tanstack/svelte-table@beta
+npm install @tanstack/svelte-table
 ```
 
 ## Your First Table
@@ -173,7 +172,7 @@ Clicking a header now toggles between ascending, descending, and unsorted. Every
 
 ## Where to Go Next
 
-**Table state.** In v9, table state is backed by TanStack Store atoms, and the Svelte adapter installs rune-based reactivity for you. You usually do not need to manage state yourself: set `initialState` for starting values and call feature APIs like `table.setSorting(...)` or `table.nextPage()`. When your app should own a state slice, or you want fine-grained subscriptions, read the [Table State Guide](./guide/table-state.md). It is the foundational guide for everything else.
+**Table state.** In v9, table state is backed by TanStack Store atoms, and the Svelte adapter installs rune-based reactivity for you. You usually do not need to manage state yourself. Set `initialState` for starting values and call feature APIs like `table.setSorting(...)` or `table.nextPage()`. When your app should own a state slice, or you want fine-grained subscriptions, read the [Table State Guide](./guide/table-state.md). It is the foundational guide for everything else.
 
 **Feature guides.** Each feature has its own guide, such as [Column Filtering](./guide/column-filtering.md), [Pagination](./guide/pagination.md), [Row Selection](./guide/row-selection.md), and [Column Visibility](./guide/column-visibility.md).
 

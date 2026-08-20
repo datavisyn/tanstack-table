@@ -11,7 +11,8 @@
       "children": [
         { "label": "Overview", "to": "overview" },
         { "label": "Installation", "to": "installation" },
-        { "label": "Devtools", "to": "devtools" }
+        { "label": "Devtools", "to": "devtools" },
+        { "label": "Agent Skills (TanStack Intent)", "to": "agent-skills" }
       ],
       "frameworks": [
         {
@@ -158,6 +159,7 @@
           "label": "react",
           "children": [
             { "label": "Table State", "to": "framework/react/guide/table-state" },
+            { "label": "React Compiler", "to": "framework/react/guide/react-compiler" },
             { "label": "Composable Tables (createTableHook)", "to": "framework/react/guide/composable-tables" },
             { "label": "Table Context", "to": "framework/react/guide/table-context" },
             { "label": "FlexRender", "to": "framework/react/guide/flex-render" },
@@ -1613,6 +1615,20 @@
             { "label": "Kitchen Sink - Chakra UI", "to": "framework/react/examples/kitchen-sink-chakra-ui" },
             { "label": "Material React Table", "to": "framework/react/examples/material-react-table" },
             { "label": "Mantine React Table", "to": "framework/react/examples/mantine-react-table" }
+          ]
+        },
+        {
+          "label": "svelte",
+          "children": [
+            { "label": "Basic - Shadcn", "to": "framework/svelte/examples/lib-shadcn" },
+            { "label": "Kitchen Sink - Shadcn", "to": "framework/svelte/examples/kitchen-sink-shadcn" }
+          ]
+        },
+        {
+          "label": "vue",
+          "children": [
+            { "label": "Basic - Shadcn", "to": "framework/vue/examples/lib-shadcn" },
+            { "label": "Kitchen Sink - Shadcn", "to": "framework/vue/examples/kitchen-sink-shadcn" }
           ]
         }
       ]
