@@ -13,6 +13,7 @@ import type { RowModel } from '../../core/row-models/coreRowModelsFeature.types'
 import type { Table, Table_Internal } from '../../types/Table'
 import type { Row } from '../../types/Row'
 import type {
+  ColumnFiltersState,
   ResolvedColumnFilter,
   Row_ColumnFiltering,
 } from './columnFilteringFeature.types'
@@ -44,19 +45,37 @@ export function createFilteredRowModel<
         table.atoms.columnFilters?.get(),
         table.atoms.globalFilter?.get(),
       ],
-      fn: () => _createFilteredRowModel(table),
+      fn: () =>
+        createFilteredRowModelUnmemoized(
+          table,
+          table.atoms.columnFilters?.get(),
+          table.atoms.globalFilter?.get(),
+          table.getPreFilteredRowModel(),
+        ),
       onAfterUpdate: skipFirstRun(() => table_autoResetPageIndex(table)),
     })
   }
 }
 
-function _createFilteredRowModel<
+/**
+ * Pure, unmemoized filtering pass: filters `rowModel` by `columnFilters` and
+ * `globalFilter`, without reading any of them off `table` (i.e. it does not
+ * call `table.getPreFilteredRowModel()` or `table.atoms.columnFilters?.get()` /
+ * `table.atoms.globalFilter?.get()` itself). This lets callers re-run
+ * filtering with a row model, column filters, or global filter of their own
+ * choosing outside of `table`'s normal row-model pipeline — for example to
+ * decide, from within a custom `filteredRowModel` feature, what the "real"
+ * (non-custom) filtered result would have been.
+ */
+export function createFilteredRowModelUnmemoized<
   TFeatures extends TableFeatures,
   TData extends RowData = any,
->(table: Table_Internal<TFeatures, TData>): RowModel<TFeatures, TData> {
-  const rowModel = table.getPreFilteredRowModel()
-  const columnFilters = table.atoms.columnFilters?.get()
-  const globalFilter = table.atoms.globalFilter?.get()
+>(
+  table: Table_Internal<TFeatures, TData>,
+  columnFilters: ColumnFiltersState | undefined,
+  globalFilter: unknown,
+  rowModel: RowModel<TFeatures, TData>,
+): RowModel<TFeatures, TData> {
   const hasGlobalFilter =
     globalFilter !== undefined && globalFilter !== null && globalFilter !== ''
 
