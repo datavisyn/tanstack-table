@@ -10,7 +10,7 @@ import type { TableFeatures } from '../../types/TableFeatures'
 import type { RowModel } from '../../core/row-models/coreRowModelsFeature.types'
 import type { Table, Table_Internal } from '../../types/Table'
 import type { Row } from '../../types/Row'
-import type { SortFn } from './rowSortingFeature.types'
+import type { SortFn, SortingState } from './rowSortingFeature.types'
 import type { RowData } from '../../types/type-utils'
 
 /**
@@ -39,19 +39,34 @@ export function createSortedRowModel<
         table.atoms.sorting?.get(),
         table.getPreSortedRowModel(),
       ],
-      fn: () => _createSortedRowModel(table),
+      fn: () =>
+        createSortedRowModelUnmemoized(
+          table,
+          table.atoms.sorting?.get(),
+          table.getPreSortedRowModel(),
+        ),
       onAfterUpdate: skipFirstRun(() => table_autoResetPageIndex(table)),
     })
   }
 }
 
-function _createSortedRowModel<
+/**
+ * Pure, unmemoized sorting pass: sorts `preSortedRowModel` (recursing into
+ * `subRows` per group) by `sorting`, without reading either off `table` (i.e.
+ * it does not call `table.getPreSortedRowModel()` or `table.atoms.sorting?.get()`
+ * itself). This lets callers re-run sorting on a row model of their own
+ * choosing outside of `table`'s normal row-model pipeline — for example to
+ * preview the sorted order of a differently-filtered row model before
+ * deciding what `table.getFilteredRowModel()` should return.
+ */
+export function createSortedRowModelUnmemoized<
   TFeatures extends TableFeatures,
   TData extends RowData = any,
->(table: Table_Internal<TFeatures, TData>): RowModel<TFeatures, TData> {
-  const preSortedRowModel = table.getPreSortedRowModel()
-  const sorting = table.atoms.sorting?.get()
-
+>(
+  table: Table_Internal<TFeatures, TData>,
+  sorting: SortingState | undefined,
+  preSortedRowModel: RowModel<TFeatures, TData>,
+): RowModel<TFeatures, TData> {
   if (!preSortedRowModel.rows.length || !sorting?.length) {
     return preSortedRowModel
   }

@@ -7,7 +7,10 @@ import {
   aggregateColumnValue,
   normalizeUniqueAggregationRows,
 } from '../row-aggregation/rowAggregationFeature.utils'
-import type { Row_ColumnGrouping } from './columnGroupingFeature.types'
+import type {
+  GroupingState,
+  Row_ColumnGrouping,
+} from './columnGroupingFeature.types'
 import type { Column_Internal } from '../../types/Column'
 import type { TableFeatures } from '../../types/TableFeatures'
 import type { RowModel } from '../../core/row-models/coreRowModelsFeature.types'
@@ -42,7 +45,12 @@ export function createGroupedRowModel<
         table.getPreGroupedRowModel(),
         table.options.columns,
       ],
-      fn: () => _createGroupedRowModel(table),
+      fn: () =>
+        createGroupedRowModelUnmemoized(
+          table,
+          table.atoms.grouping?.get(),
+          table.getPreGroupedRowModel(),
+        ),
       onAfterUpdate: () => {
         const grouping = table.atoms.grouping?.get()
         const preGroupedRowModel = table.getPreGroupedRowModel()
@@ -70,13 +78,22 @@ export function createGroupedRowModel<
   }
 }
 
-function _createGroupedRowModel<
+/**
+ * Pure, unmemoized grouping pass: groups `rowModel` by `grouping` without reading
+ * either off `table` (i.e. it does not call `table.getPreGroupedRowModel()` or
+ * `table.atoms.grouping?.get()` itself). This lets callers re-run grouping on a
+ * row model of their own choosing outside of `table`'s normal row-model
+ * pipeline — for example to preview the grouped order of a differently-filtered
+ * row model before deciding what `table.getFilteredRowModel()` should return.
+ */
+export function createGroupedRowModelUnmemoized<
   TFeatures extends TableFeatures,
   TData extends RowData = any,
->(table: Table_Internal<TFeatures, TData>): RowModel<TFeatures, TData> {
-  const rowModel = table.getPreGroupedRowModel()
-  const grouping = table.atoms.grouping?.get()
-
+>(
+  table: Table_Internal<TFeatures, TData>,
+  grouping: GroupingState | undefined,
+  rowModel: RowModel<TFeatures, TData>,
+): RowModel<TFeatures, TData> {
   if (!rowModel.rows.length || !grouping?.length) {
     // A previous grouped pass rewrote depth/parentId on these shared row
     // objects, shifting the whole tree down by the number of grouping levels.
