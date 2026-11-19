@@ -72,6 +72,7 @@ export const columnOrderingFeature: TableFeature = {
           table.atoms.columnOrder?.get(),
           table.atoms.grouping?.get(),
           table.options.groupedColumnMode,
+          table.options.keepColumnGroupsTogether,
         ],
       },
     })

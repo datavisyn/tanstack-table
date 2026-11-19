@@ -35,6 +35,17 @@ export interface TableOptions_ColumnOrdering {
    * slice without this callback.
    */
   onColumnOrderChange?: OnChangeFn<ColumnOrderState>
+  /**
+   * Keeps the leaf columns of a group column next to each other, whatever
+   * `state.columnOrder` says: they are pulled together at the group's first
+   * leaf column and keep their relative order. `state.columnOrder` itself is
+   * not changed.
+   *
+   * Without this, a group whose leaf columns are apart in the column order is
+   * rendered as several group headers.
+   * @default false
+   */
+  keepColumnGroupsTogether?: boolean
 }
 
 export interface Column_ColumnOrdering {
