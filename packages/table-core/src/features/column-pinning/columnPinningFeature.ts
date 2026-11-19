@@ -91,6 +91,7 @@ export const columnPinningFeature: TableFeature = {
           row.getAllCells(),
           row.table.atoms.columnPinning?.get(),
           row.table.atoms.columnVisibility?.get(),
+          row.table.atoms.columnGroupModes?.get(),
         ],
       },
       row_getStartVisibleCells: {
@@ -99,6 +100,7 @@ export const columnPinningFeature: TableFeature = {
           row.getAllCells(),
           row.table.atoms.columnPinning?.get()?.start,
           row.table.atoms.columnVisibility?.get(),
+          row.table.atoms.columnGroupModes?.get(),
         ],
       },
       row_getEndVisibleCells: {
@@ -107,6 +109,7 @@ export const columnPinningFeature: TableFeature = {
           row.getAllCells(),
           row.table.atoms.columnPinning?.get()?.end,
           row.table.atoms.columnVisibility?.get(),
+          row.table.atoms.columnGroupModes?.get(),
         ],
       },
     })
@@ -292,6 +295,7 @@ export const columnPinningFeature: TableFeature = {
           table.options.columns,
           table.atoms.columnPinning?.get(),
           table.atoms.columnVisibility?.get(),
+          table.atoms.columnGroupModes?.get(),
           table.atoms.columnOrder?.get(),
           table.atoms.grouping?.get(),
           table.options.groupedColumnMode,
@@ -303,6 +307,7 @@ export const columnPinningFeature: TableFeature = {
           table.options.columns,
           table.atoms.columnPinning?.get(),
           table.atoms.columnVisibility?.get(),
+          table.atoms.columnGroupModes?.get(),
           table.atoms.columnOrder?.get(),
           table.atoms.grouping?.get(),
           table.options.groupedColumnMode,
@@ -314,6 +319,7 @@ export const columnPinningFeature: TableFeature = {
           table.options.columns,
           table.atoms.columnPinning?.get(),
           table.atoms.columnVisibility?.get(),
+          table.atoms.columnGroupModes?.get(),
           table.atoms.columnOrder?.get(),
           table.atoms.grouping?.get(),
           table.options.groupedColumnMode,
