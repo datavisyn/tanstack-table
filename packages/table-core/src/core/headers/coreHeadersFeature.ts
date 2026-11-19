@@ -36,6 +36,7 @@ export const coreHeadersFeature: TableFeature = {
           table.atoms.grouping?.get(),
           table.atoms.columnPinning?.get(),
           table.atoms.columnVisibility?.get(),
+          table.atoms.columnGroupModes?.get(),
           table.options.groupedColumnMode,
         ],
       },
