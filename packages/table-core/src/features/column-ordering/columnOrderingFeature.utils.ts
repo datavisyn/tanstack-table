@@ -240,72 +240,8 @@ export function table_getOrderColumnsFn<
       }
     }
 
-    if (table.options.keepColumnGroupsTogether) {
-      orderedColumns = keepColumnGroupsTogether(orderedColumns)
-    }
-
     return orderColumns(table, orderedColumns)
   }
-}
-
-/**
- * Pulls the leaf columns of each group column together at the position of the
- * group's first leaf column, keeping their relative order. Nested groups are
- * kept together inside their parent group.
- *
- * Returns the given array when nothing has to move.
- *
- * @example
- * ```ts
- * // `a` and `b` share a group column, `x` has none
- * keepColumnGroupsTogether([a, x, b]) // [a, b, x]
- * ```
- */
-export function keepColumnGroupsTogether<
-  TFeatures extends TableFeatures,
-  TData extends RowData,
->(
-  leafColumns: Array<Column_Internal<TFeatures, TData, unknown>>,
-  depth = 0,
-): Array<Column_Internal<TFeatures, TData, unknown>> {
-  // Keyed by the column's ancestor at `depth`, or by the column itself when it
-  // sits at or above that depth. A Map keeps the order of first appearance.
-  const buckets = new Map<
-    Column_Internal<TFeatures, TData, unknown>,
-    Array<Column_Internal<TFeatures, TData, unknown>>
-  >()
-
-  for (let i = 0; i < leafColumns.length; i++) {
-    const column = leafColumns[i]!
-    let key = column
-    while (key.parent && key.depth > depth) {
-      key = key.parent
-    }
-    const bucket = buckets.get(key)
-    if (bucket) {
-      bucket.push(column)
-    } else {
-      buckets.set(key, [column])
-    }
-  }
-
-  if (buckets.size === leafColumns.length) {
-    return leafColumns
-  }
-
-  const result: Array<Column_Internal<TFeatures, TData, unknown>> = []
-  let moved = false
-  for (const bucket of buckets.values()) {
-    const ordered =
-      bucket.length > 1 ? keepColumnGroupsTogether(bucket, depth + 1) : bucket
-    for (let i = 0; i < ordered.length; i++) {
-      const column = ordered[i]!
-      if (leafColumns[result.length] !== column) moved = true
-      result.push(column)
-    }
-  }
-
-  return moved ? result : leafColumns
 }
 
 /**
