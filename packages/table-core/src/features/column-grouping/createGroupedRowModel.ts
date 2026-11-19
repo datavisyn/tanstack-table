@@ -1,12 +1,12 @@
 import { hasOwn, makeObjectMap, tableMemo } from '../../utils'
 import { constructRow } from '../../core/rows/constructRow'
 import { table_getColumn } from '../../core/columns/coreColumnsFeature.utils'
-import { table_autoResetExpanded } from '../row-expanding/rowExpandingFeature.utils'
-import { table_autoResetPageIndex } from '../row-pagination/rowPaginationFeature.utils'
+import { normalizeUniqueAggregationRows } from '../row-aggregation/rowAggregationFeature.utils'
 import {
-  aggregateColumnValue,
-  normalizeUniqueAggregationRows,
-} from '../row-aggregation/rowAggregationFeature.utils'
+  autoResetExpanded,
+  autoResetPageIndex,
+  getAggregateColumnValue,
+} from '../../core/featureStubs'
 import type {
   GroupingState,
   Row_ColumnGrouping,
@@ -70,8 +70,8 @@ export function createGroupedRowModel<
         // reference does not change which rows belong on the current page or
         // which group ids are expanded.
         if (rowInputsChanged) {
-          table_autoResetExpanded(table)
-          table_autoResetPageIndex(table)
+          autoResetExpanded(table)
+          autoResetPageIndex(table)
         }
       },
     })
@@ -124,17 +124,11 @@ export function createGroupedRowModelUnmemoized<
       return rows.map((row) => {
         row.depth = depth
 
-        // Every row is pushed into flatRows/rowsById exactly once, by its
-        // parent frame: rows returned here are pushed by the caller (the
-        // parent group's loop or the root loop), so only descendants below
-        // the terminal depth are pushed here.
+        groupedFlatRows.push(row)
+        groupedRowsById[row.id] = row
+
         if (row.subRows.length) {
           row.subRows = groupUpRecursively(row.subRows, depth + 1, row.id)
-          for (let i = 0; i < row.subRows.length; i++) {
-            const subRow = row.subRows[i]!
-            groupedFlatRows.push(subRow)
-            groupedRowsById[subRow.id] = subRow
-          }
         }
 
         return row
@@ -151,6 +145,10 @@ export function createGroupedRowModelUnmemoized<
       ([groupingValue, groupedRows], index) => {
         let id = `${columnId}:${groupingValue}`
         id = parentId ? `${parentId}>${id}` : id
+
+        // Reserve this group's position before its descendants are built.
+        const flatIndex = groupedFlatRows.length
+        groupedFlatRows.push(undefined as unknown as Row<TFeatures, TData>)
 
         // First, Recurse to group sub rows before aggregation
         const subRows = groupUpRecursively(groupedRows, depth + 1, id)
@@ -207,12 +205,17 @@ export function createGroupedRowModelUnmemoized<
               return aggregationCache[colId]
             }
 
+            // rowAggregationFeature provides the executor, so grouping
+            // without aggregation never bundles it
+            const aggregate = getAggregateColumnValue(table)
             const column = table.getColumn(colId) as any
-            if (typeof column.getAggregationFns !== 'function') return undefined
+            if (!aggregate || typeof column.getAggregationFns !== 'function') {
+              return undefined
+            }
 
             const cache = ((row as any)._aggregationValuesCache ??=
               makeObjectMap())
-            cache[colId] = aggregateColumnValue({
+            cache[colId] = aggregate({
               subRows,
               column,
               groupingRow: row,
@@ -223,10 +226,8 @@ export function createGroupedRowModelUnmemoized<
           },
         })
 
-        subRows.forEach((subRow) => {
-          groupedFlatRows.push(subRow)
-          groupedRowsById[subRow.id] = subRow
-        })
+        groupedFlatRows[flatIndex] = row
+        groupedRowsById[id] = row
 
         return row
       },
@@ -236,11 +237,6 @@ export function createGroupedRowModelUnmemoized<
   }
 
   const groupedRows = groupUpRecursively(rowModel.rows, 0)
-
-  groupedRows.forEach((subRow) => {
-    groupedFlatRows.push(subRow)
-    groupedRowsById[subRow.id] = subRow
-  })
 
   return {
     rows: groupedRows,

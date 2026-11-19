@@ -3,7 +3,7 @@ import {
   skipFirstRun,
   tableMemo,
 } from '../../utils'
-import { table_autoResetPageIndex } from '../row-pagination/rowPaginationFeature.utils'
+import { autoResetPageIndex } from '../../core/featureStubs'
 import { column_getCanSort, column_getSortFn } from './rowSortingFeature.utils'
 import type { Column_Internal } from '../../types/Column'
 import type { TableFeatures } from '../../types/TableFeatures'
@@ -45,7 +45,7 @@ export function createSortedRowModel<
           table.atoms.sorting?.get(),
           table.getPreSortedRowModel(),
         ),
-      onAfterUpdate: skipFirstRun(() => table_autoResetPageIndex(table)),
+      onAfterUpdate: skipFirstRun(() => autoResetPageIndex(table)),
     })
   }
 }

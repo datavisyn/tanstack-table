@@ -5,9 +5,9 @@
     "type": "git",
     "url": "git+https://github.com/TanStack/table.git"
   },
-  "packageManager": "pnpm@11.21.0",
+  "packageManager": "pnpm@12.18.0",
   "engines": {
-    "node": ">=20",
+    "node": "^22.18.0 || >=24.11.0",
     "pnpm": ">=11.9.0"
   },
   "type": "module",
@@ -27,19 +27,21 @@
     "lint:fix:all": "pnpm run format && nx run-many --targets=lint --fix",
     "lint:fix": "nx affected --target=lint:fix --exclude=examples/**",
     "size": "size-limit",
+    "size:devtools": "node scripts/generate-bundle-sizes.mjs",
     "test": "pnpm run test:ci",
     "test:build": "nx affected --target=test:build",
     "test:ci": "pnpm run test:compiler-examples && nx run-many --targets=test:eslint,test:sherif,test:knip,test:lib,test:types,test:build,build",
     "test:compiler-examples": "node scripts/verify-react-compiler-examples.mjs",
     "test:docs": "node scripts/verify-links.ts",
-    "test:e2e": "node scripts/run-e2e-with-retry.mjs",
-    "test:e2e:affected": "nx affected --target=test:e2e",
+    "test:e2e": "pnpm run test:e2e:infrastructure && node scripts/run-e2e-with-retry.mjs",
+    "test:e2e:affected": "pnpm run test:e2e:infrastructure && node scripts/run-e2e-with-retry.mjs --affected",
     "test:e2e:install": "playwright install chromium",
     "test:eslint": "nx affected --target=test:eslint",
     "test:intent": "intent validate && intent stale",
     "test:skill-content": "node scripts/validate-skill-content.mjs",
     "test:skill-snippets": "node scripts/typecheck-skill-snippets.mjs",
-    "test:skills": "intent validate && pnpm skills:versions:check && pnpm test:skill-content && pnpm test:skill-snippets",
+    "test:skill-tree": "node scripts/validate-skill-tree.mjs && node --test scripts/tests/skill-tree.test.mjs",
+    "test:skills": "intent validate && pnpm skills:versions:check && pnpm test:skill-tree && pnpm test:skill-content && pnpm test:skill-snippets",
     "test:knip": "NODE_OPTIONS='--max-old-space-size=4096' knip",
     "test:lib": "nx affected --targets=test:lib",
     "test:lib:dev": "pnpm test:lib && nx watch --all -- pnpm test:lib",
@@ -48,7 +50,8 @@
     "test:types": "nx affected --targets=test:types",
     "skills:versions:check": "node scripts/sync-skill-versions.mjs",
     "skills:versions:fix": "node scripts/sync-skill-versions.mjs --write",
-    "watch": "pnpm run build:all && nx watch --all -- pnpm run build:all"
+    "watch": "pnpm run build:all && nx watch --all -- pnpm run build:all",
+    "test:e2e:infrastructure": "node --test scripts/tests/e2e-infrastructure.test.mjs"
   },
   "nx": {
     "includedScripts": [
@@ -60,39 +63,65 @@
   },
   "size-limit": [
     {
+      "name": "@tanstack/table-core (everything)",
       "path": "packages/table-core/dist/index.js",
       "limit": "30 KB"
+    },
+    {
+      "name": "constructTable (core features only)",
+      "path": "packages/table-core/dist/index.js",
+      "import": "{ constructTable }",
+      "limit": "6 KB"
+    },
+    {
+      "name": "filterFn_includesString (tree-shaking)",
+      "path": "packages/table-core/dist/index.js",
+      "import": "{ filterFn_includesString }",
+      "limit": "300 B"
+    },
+    {
+      "name": "sortFn_text (tree-shaking)",
+      "path": "packages/table-core/dist/index.js",
+      "import": "{ sortFn_text }",
+      "limit": "300 B"
+    },
+    {
+      "name": "aggregationFn_sum (tree-shaking)",
+      "path": "packages/table-core/dist/index.js",
+      "import": "{ aggregationFn_sum }",
+      "limit": "300 B"
     }
   ],
   "devDependencies": {
-    "@changesets/changelog-github": "^1.0.0",
-    "@changesets/cli": "^3.0.0",
-    "@faker-js/faker": "^10.5.0",
-    "@playwright/test": "^1.62.1",
-    "@size-limit/preset-small-lib": "^13.0.3",
-    "@tanstack/eslint-config": "0.4.0",
-    "@tanstack/intent": "^0.3.6",
-    "@tanstack/typedoc-config": "0.3.4",
+    "@changesets/changelog-github": "^1.0.1",
+    "@changesets/cli": "^3.0.3",
+    "@faker-js/faker": "^10.6.0",
+    "@playwright/test": "^1.65.0",
+    "@size-limit/preset-small-lib": "^14.3.0",
+    "@tanstack/eslint-config": "0.5.0",
+    "@tanstack/intent": "0.4.0",
+    "@tanstack/typedoc-config": "0.3.5",
     "@testing-library/jest-dom": "^7.0.1",
-    "@types/node": "^26.2.0",
-    "@typescript-eslint/parser": "8.67.0",
-    "@vitest/coverage-v8": "4.1.10",
-    "eslint": "^10.8.1",
-    "jsdom": "^30.0.1",
-    "knip": "^6.32.2",
+    "@types/node": "^26.6.6",
+    "@typescript-eslint/parser": "8.72.2",
+    "@vitest/coverage-v8": "5.1.0",
+    "eslint": "^10.14.0",
+    "jsdom": "^31.0.1",
+    "knip": "^6.45.1",
     "markdown-link-extractor": "^4.0.4",
-    "nx": "^23.1.1",
-    "prettier": "^3.9.6",
-    "prettier-plugin-ember-template-tag": "^2.1.7",
+    "nx": "^24.0.6",
+    "prettier": "^3.10.1",
+    "prettier-plugin-ember-template-tag": "^2.1.8",
     "prettier-plugin-svelte": "^4.1.1",
-    "publint": "^0.3.23",
-    "rimraf": "^6.1.3",
+    "publint": "^0.3.25",
+    "rimraf": "^6.1.4",
     "sherif": "^1.13.0",
-    "size-limit": "^13.0.3",
+    "size-limit": "^14.3.0",
     "tinyglobby": "^0.2.17",
-    "tsdown": "^0.22.14",
+    "tsdown": "^0.23.7",
     "typescript": "6.0.3",
-    "vite": "^8.2.1",
-    "vitest": "^4.1.10"
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0",
+    "yaml": "2.9.1"
   }
 }

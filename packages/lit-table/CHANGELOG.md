@@ -1,5 +1,52 @@
 # @tanstack/lit-table
 
+## 9.3.1
+
+### Patch Changes
+
+- Updated dependencies [[`2d5f5b6`](https://github.com/TanStack/table/commit/2d5f5b65a98350949ac9ce7397a29ee9bbe2fd5e), [`87c6bcc`](https://github.com/TanStack/table/commit/87c6bcc52a5cd614d83d698c76048b4c1c2bb8f7)]:
+  - @tanstack/table-core@9.3.1
+
+## 9.2.8
+
+### Patch Changes
+
+- Updated dependencies [[`f1c3409`](https://github.com/TanStack/table/commit/f1c3409bb4aae6c07ebb1cb0a0723372ed64223e)]:
+  - @tanstack/table-core@9.2.8
+
+## 9.2.6
+
+### Patch Changes
+
+- [#6611](https://github.com/TanStack/table/pull/6611) [`b9b007f`](https://github.com/TanStack/table/commit/b9b007fa038328a795d1f3b5e8f80cea8a55a3b4) - Refactor bundled Intent skills into smaller entry points with references loaded for the current task. Keep core feature architecture and shared state directly discoverable, and move individual features, adapter compositions, and detailed migration guidance into references.
+
+  Consumers with individual skill permissions or explicit agent mappings must replace retired feature/composition IDs with their owning entry points and refresh Intent mappings. See the Agent Skills guide for the replacement paths.
+
+- Updated dependencies [[`b9b007f`](https://github.com/TanStack/table/commit/b9b007fa038328a795d1f3b5e8f80cea8a55a3b4)]:
+  - @tanstack/table-core@9.2.6
+
+## 9.2.5
+
+### Patch Changes
+
+- [#6609](https://github.com/TanStack/table/pull/6609) [`e9158e7`](https://github.com/TanStack/table/commit/e9158e7be837525ab99abd78550266d7cdcc58b2) - Update TanStack Store dependencies to the latest compatible patch releases.
+- Updated dependencies [[`e9158e7`](https://github.com/TanStack/table/commit/e9158e7be837525ab99abd78550266d7cdcc58b2)]:
+  - @tanstack/table-core@9.2.5
+
+## 9.2.4
+
+### Patch Changes
+
+- Updated dependencies [[`f72e516`](https://github.com/TanStack/table/commit/f72e5164bcfe749403ec173035c226f8719647fc)]:
+  - @tanstack/table-core@9.2.4
+
+## 9.2.3
+
+### Patch Changes
+
+- Updated dependencies [[`468f267`](https://github.com/TanStack/table/commit/468f26768d6f7e31010e14c3363b54696cb6a1eb), [`3b94648`](https://github.com/TanStack/table/commit/3b946481795b53a53d6d823cea0ab3e368befec7)]:
+  - @tanstack/table-core@9.2.3
+
 ## 9.1.2
 
 ### Patch Changes

@@ -1,5 +1,61 @@
 # @tanstack/angular-table-devtools
 
+## 9.3.2
+
+### Patch Changes
+
+- [#6662](https://github.com/TanStack/table/pull/6662) [`38ade3a`](https://github.com/TanStack/table/commit/38ade3a375c782ff3bd264b77b718a31ea9859e9) - Raise minimum versions of runtime dependencies: `@tanstack/devtools-utils` ^0.7.2, `@tanstack/devtools-ui` ^0.7.2, `@tanstack/svelte-store` ^0.12.3, `@embroider/addon-shim` ^1.11.0, `solid-js` ^1.9.19, and `tslib` ^2.9.1
+- Updated dependencies [[`38ade3a`](https://github.com/TanStack/table/commit/38ade3a375c782ff3bd264b77b718a31ea9859e9)]:
+  - @tanstack/table-devtools@9.3.2
+
+## 9.3.1
+
+### Patch Changes
+
+- Updated dependencies [[`2d5f5b6`](https://github.com/TanStack/table/commit/2d5f5b65a98350949ac9ce7397a29ee9bbe2fd5e), [`87c6bcc`](https://github.com/TanStack/table/commit/87c6bcc52a5cd614d83d698c76048b4c1c2bb8f7)]:
+  - @tanstack/table-core@9.3.1
+  - @tanstack/table-devtools@9.3.1
+
+## 9.2.8
+
+### Patch Changes
+
+- Updated dependencies [[`f1c3409`](https://github.com/TanStack/table/commit/f1c3409bb4aae6c07ebb1cb0a0723372ed64223e)]:
+  - @tanstack/table-core@9.2.8
+  - @tanstack/table-devtools@9.2.8
+
+## 9.2.6
+
+### Patch Changes
+
+- Updated dependencies [[`b9b007f`](https://github.com/TanStack/table/commit/b9b007fa038328a795d1f3b5e8f80cea8a55a3b4)]:
+  - @tanstack/table-core@9.2.6
+  - @tanstack/table-devtools@9.2.5
+
+## 9.2.5
+
+### Patch Changes
+
+- Updated dependencies [[`e9158e7`](https://github.com/TanStack/table/commit/e9158e7be837525ab99abd78550266d7cdcc58b2)]:
+  - @tanstack/table-core@9.2.5
+  - @tanstack/table-devtools@9.2.5
+
+## 9.2.4
+
+### Patch Changes
+
+- Updated dependencies [[`f72e516`](https://github.com/TanStack/table/commit/f72e5164bcfe749403ec173035c226f8719647fc)]:
+  - @tanstack/table-core@9.2.4
+  - @tanstack/table-devtools@9.2.0
+
+## 9.2.3
+
+### Patch Changes
+
+- Updated dependencies [[`468f267`](https://github.com/TanStack/table/commit/468f26768d6f7e31010e14c3363b54696cb6a1eb), [`3b94648`](https://github.com/TanStack/table/commit/3b946481795b53a53d6d823cea0ab3e368befec7)]:
+  - @tanstack/table-core@9.2.3
+  - @tanstack/table-devtools@9.2.0
+
 ## 9.2.0
 
 ### Minor Changes
