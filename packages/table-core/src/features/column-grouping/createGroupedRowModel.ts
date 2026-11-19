@@ -1,13 +1,16 @@
 import { hasOwn, makeObjectMap, tableMemo } from '../../utils'
 import { constructRow } from '../../core/rows/constructRow'
 import { table_getColumn } from '../../core/columns/coreColumnsFeature.utils'
-import { table_autoResetExpanded } from '../row-expanding/rowExpandingFeature.utils'
-import { table_autoResetPageIndex } from '../row-pagination/rowPaginationFeature.utils'
+import { normalizeUniqueAggregationRows } from '../row-aggregation/rowAggregationFeature.utils'
 import {
-  aggregateColumnValue,
-  normalizeUniqueAggregationRows,
-} from '../row-aggregation/rowAggregationFeature.utils'
-import type { Row_ColumnGrouping } from './columnGroupingFeature.types'
+  autoResetExpanded,
+  autoResetPageIndex,
+  getAggregateColumnValue,
+} from '../../core/featureStubs'
+import type {
+  GroupingState,
+  Row_ColumnGrouping,
+} from './columnGroupingFeature.types'
 import type { Column_Internal } from '../../types/Column'
 import type { TableFeatures } from '../../types/TableFeatures'
 import type { RowModel } from '../../core/row-models/coreRowModelsFeature.types'
@@ -42,7 +45,12 @@ export function createGroupedRowModel<
         table.getPreGroupedRowModel(),
         table.options.columns,
       ],
-      fn: () => _createGroupedRowModel(table),
+      fn: () =>
+        createGroupedRowModelUnmemoized(
+          table,
+          table.atoms.grouping?.get(),
+          table.getPreGroupedRowModel(),
+        ),
       onAfterUpdate: () => {
         const grouping = table.atoms.grouping?.get()
         const preGroupedRowModel = table.getPreGroupedRowModel()
@@ -62,21 +70,30 @@ export function createGroupedRowModel<
         // reference does not change which rows belong on the current page or
         // which group ids are expanded.
         if (rowInputsChanged) {
-          table_autoResetExpanded(table)
-          table_autoResetPageIndex(table)
+          autoResetExpanded(table)
+          autoResetPageIndex(table)
         }
       },
     })
   }
 }
 
-function _createGroupedRowModel<
+/**
+ * Pure, unmemoized grouping pass: groups `rowModel` by `grouping` without reading
+ * either off `table` (i.e. it does not call `table.getPreGroupedRowModel()` or
+ * `table.atoms.grouping?.get()` itself). This lets callers re-run grouping on a
+ * row model of their own choosing outside of `table`'s normal row-model
+ * pipeline — for example to preview the grouped order of a differently-filtered
+ * row model before deciding what `table.getFilteredRowModel()` should return.
+ */
+export function createGroupedRowModelUnmemoized<
   TFeatures extends TableFeatures,
   TData extends RowData = any,
->(table: Table_Internal<TFeatures, TData>): RowModel<TFeatures, TData> {
-  const rowModel = table.getPreGroupedRowModel()
-  const grouping = table.atoms.grouping?.get()
-
+>(
+  table: Table_Internal<TFeatures, TData>,
+  grouping: GroupingState | undefined,
+  rowModel: RowModel<TFeatures, TData>,
+): RowModel<TFeatures, TData> {
   if (!rowModel.rows.length || !grouping?.length) {
     // A previous grouped pass rewrote depth/parentId on these shared row
     // objects, shifting the whole tree down by the number of grouping levels.
@@ -107,17 +124,11 @@ function _createGroupedRowModel<
       return rows.map((row) => {
         row.depth = depth
 
-        // Every row is pushed into flatRows/rowsById exactly once, by its
-        // parent frame: rows returned here are pushed by the caller (the
-        // parent group's loop or the root loop), so only descendants below
-        // the terminal depth are pushed here.
+        groupedFlatRows.push(row)
+        groupedRowsById[row.id] = row
+
         if (row.subRows.length) {
           row.subRows = groupUpRecursively(row.subRows, depth + 1, row.id)
-          for (let i = 0; i < row.subRows.length; i++) {
-            const subRow = row.subRows[i]!
-            groupedFlatRows.push(subRow)
-            groupedRowsById[subRow.id] = subRow
-          }
         }
 
         return row
@@ -134,6 +145,10 @@ function _createGroupedRowModel<
       ([groupingValue, groupedRows], index) => {
         let id = `${columnId}:${groupingValue}`
         id = parentId ? `${parentId}>${id}` : id
+
+        // Reserve this group's position before its descendants are built.
+        const flatIndex = groupedFlatRows.length
+        groupedFlatRows.push(undefined as unknown as Row<TFeatures, TData>)
 
         // First, Recurse to group sub rows before aggregation
         const subRows = groupUpRecursively(groupedRows, depth + 1, id)
@@ -190,12 +205,17 @@ function _createGroupedRowModel<
               return aggregationCache[colId]
             }
 
+            // rowAggregationFeature provides the executor, so grouping
+            // without aggregation never bundles it
+            const aggregate = getAggregateColumnValue(table)
             const column = table.getColumn(colId) as any
-            if (typeof column.getAggregationFns !== 'function') return undefined
+            if (!aggregate || typeof column.getAggregationFns !== 'function') {
+              return undefined
+            }
 
             const cache = ((row as any)._aggregationValuesCache ??=
               makeObjectMap())
-            cache[colId] = aggregateColumnValue({
+            cache[colId] = aggregate({
               subRows,
               column,
               groupingRow: row,
@@ -206,10 +226,8 @@ function _createGroupedRowModel<
           },
         })
 
-        subRows.forEach((subRow) => {
-          groupedFlatRows.push(subRow)
-          groupedRowsById[subRow.id] = subRow
-        })
+        groupedFlatRows[flatIndex] = row
+        groupedRowsById[id] = row
 
         return row
       },
@@ -219,11 +237,6 @@ function _createGroupedRowModel<
   }
 
   const groupedRows = groupUpRecursively(rowModel.rows, 0)
-
-  groupedRows.forEach((subRow) => {
-    groupedFlatRows.push(subRow)
-    groupedRowsById[subRow.id] = subRow
-  })
 
   return {
     rows: groupedRows,

@@ -1,7 +1,40 @@
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
+import nodeProcess from 'node:process'
 import { spawn } from 'node:child_process'
+import type { ChildProcess } from 'node:child_process'
+import { test } from '@playwright/test'
 import { createServer } from 'vite'
+
+// Browser examples declare a minimal global process, which also narrows the
+// node:process export. This helper runs exclusively in a Node test worker.
+const process = nodeProcess as NodeJS.Process
+
+// Register cleanup before startup/navigation can fail. Killing pnpm alone leaves
+// its Vite/Angular descendants alive on Linux, accumulating servers across tasks.
+const children = new Set<ChildProcess>()
+const servers = new Set<{ close: () => Promise<void> }>()
+
+function killServer(child: ChildProcess) {
+  if (!child.pid || !children.has(child)) return
+  try {
+    if (process.platform === 'win32') child.kill('SIGKILL')
+    else process.kill(-child.pid, 'SIGKILL')
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ESRCH') throw error
+  }
+  children.delete(child)
+}
+
+process.once('exit', () => {
+  for (const child of children) killServer(child)
+})
+
+test.afterAll(async () => {
+  for (const child of children) killServer(child)
+  await Promise.all([...servers].map((server) => server.close()))
+  servers.clear()
+})
 
 function hasDependency(exampleDir: string, dependency: string) {
   const pkgPath = path.join(exampleDir, 'package.json')
@@ -43,10 +76,13 @@ export async function startExampleServer(exampleDir: string) {
     throw new Error(`Failed to find a Vite app for ${exampleDir}`)
   }
 
+  const playwrightViteMode = (process.env as Record<string, string | undefined>)
+    .PLAYWRIGHT_VITE_MODE
   const server = await createServer({
     root: exampleDir,
     configFile: configFile ?? false,
     logLevel: 'error',
+    ...(playwrightViteMode ? { mode: playwrightViteMode } : {}),
     server: {
       host: '127.0.0.1',
       port: 0,
@@ -54,7 +90,15 @@ export async function startExampleServer(exampleDir: string) {
     },
   })
 
+  servers.add(server)
   await server.listen()
+  // Crawl the entry before browser navigation so dependency optimization
+  // does not invalidate module URLs while the smoke test loads them.
+  const entry = path.join(exampleDir, 'index.html')
+  if (existsSync(entry)) {
+    await server.transformIndexHtml('/', readFileSync(entry, 'utf8'))
+    await server.waitForRequestsIdle()
+  }
 
   const address = server.httpServer?.address()
   if (!address || typeof address === 'string') {
@@ -64,14 +108,35 @@ export async function startExampleServer(exampleDir: string) {
 
   return {
     url: `http://127.0.0.1:${address.port}/`,
-    close: () => server.close(),
+    close: async () => {
+      await server.close()
+      servers.delete(server)
+    },
   }
 }
 
 async function startSpawnedViteServer(exampleDir: string) {
+  const maxAttempts = 5
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      return await listenOnSpawnedVitePort(exampleDir)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      if (!message.includes('already in use') || attempt === maxAttempts - 1) {
+        throw error
+      }
+    }
+  }
+
+  throw new Error(`Failed to start Vite server for ${exampleDir}`)
+}
+
+async function listenOnSpawnedVitePort(exampleDir: string) {
   // Random high port: `vite dev` has no port-0 support, and parallel test
-  // workers must not collide.
-  const port = 4100 + Math.floor(Math.random() * 2000)
+  // workers must not collide. Avoid the 4100-6099 range so we do not land on
+  // macOS services such as port 6000.
+  const port = 18000 + Math.floor(Math.random() * 2000)
   const child = spawn(
     'pnpm',
     [
@@ -91,21 +156,23 @@ async function startSpawnedViteServer(exampleDir: string) {
         FORCE_COLOR: '0',
         NO_COLOR: '1',
       },
+      detached: process.platform !== 'win32',
       stdio: ['ignore', 'pipe', 'pipe'],
     },
   )
 
+  children.add(child)
   let output = ''
 
   const url = await new Promise<string>((resolve, reject) => {
     const timeout = setTimeout(() => {
-      child.kill()
+      killServer(child)
       reject(
         new Error(
           `Timed out starting Vite server for ${exampleDir}\n${output}`,
         ),
       )
-    }, 60_000)
+    }, 90_000)
 
     const handleOutput = (chunk: Buffer) => {
       output += chunk.toString()
@@ -139,13 +206,7 @@ async function startSpawnedViteServer(exampleDir: string) {
   return {
     url,
     close: async () => {
-      if (child.exitCode !== null || child.signalCode !== null) {
-        return
-      }
-      child.kill()
-      await new Promise<void>((resolve) => {
-        child.once('exit', () => resolve())
-      })
+      killServer(child)
     },
   }
 }
@@ -171,21 +232,23 @@ async function startAngularExampleServer(exampleDir: string) {
         FORCE_COLOR: '0',
         NO_COLOR: '1',
       },
+      detached: process.platform !== 'win32',
       stdio: ['ignore', 'pipe', 'pipe'],
     },
   )
 
+  children.add(child)
   let output = ''
 
   const url = await new Promise<string>((resolve, reject) => {
     const timeout = setTimeout(() => {
-      child.kill()
+      killServer(child)
       reject(
         new Error(
           `Timed out starting Angular server for ${exampleDir}\n${output}`,
         ),
       )
-    }, 60_000)
+    }, 90_000)
 
     const handleOutput = (chunk: Buffer) => {
       output += chunk.toString()
@@ -219,14 +282,7 @@ async function startAngularExampleServer(exampleDir: string) {
   return {
     url,
     close: async () => {
-      if (child.exitCode !== null || child.signalCode !== null) {
-        return
-      }
-
-      child.kill()
-      await new Promise<void>((resolve) => {
-        child.once('exit', () => resolve())
-      })
+      killServer(child)
     },
   }
 }

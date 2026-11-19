@@ -1,10 +1,10 @@
 import { makeObjectMap, skipFirstRun, tableMemo } from '../../utils'
 import { table_getColumn } from '../../core/columns/coreColumnsFeature.utils'
 import {
-  column_getCanGlobalFilter,
-  table_getGlobalFilterFn,
-} from '../global-filtering/globalFilteringFeature.utils'
-import { table_autoResetPageIndex } from '../row-pagination/rowPaginationFeature.utils'
+  autoResetPageIndex,
+  getCanGlobalFilter,
+  getGlobalFilterFn,
+} from '../../core/featureStubs'
 import { filterRows } from './filterRowsUtils'
 import { column_getFilterFn } from './columnFilteringFeature.utils'
 import type { RowData } from '../../types/type-utils'
@@ -13,6 +13,7 @@ import type { RowModel } from '../../core/row-models/coreRowModelsFeature.types'
 import type { Table, Table_Internal } from '../../types/Table'
 import type { Row } from '../../types/Row'
 import type {
+  ColumnFiltersState,
   ResolvedColumnFilter,
   Row_ColumnFiltering,
 } from './columnFilteringFeature.types'
@@ -44,19 +45,37 @@ export function createFilteredRowModel<
         table.atoms.columnFilters?.get(),
         table.atoms.globalFilter?.get(),
       ],
-      fn: () => _createFilteredRowModel(table),
-      onAfterUpdate: skipFirstRun(() => table_autoResetPageIndex(table)),
+      fn: () =>
+        createFilteredRowModelUnmemoized(
+          table,
+          table.atoms.columnFilters?.get(),
+          table.atoms.globalFilter?.get(),
+          table.getPreFilteredRowModel(),
+        ),
+      onAfterUpdate: skipFirstRun(() => autoResetPageIndex(table)),
     })
   }
 }
 
-function _createFilteredRowModel<
+/**
+ * Pure, unmemoized filtering pass: filters `rowModel` by `columnFilters` and
+ * `globalFilter`, without reading any of them off `table` (i.e. it does not
+ * call `table.getPreFilteredRowModel()` or `table.atoms.columnFilters?.get()` /
+ * `table.atoms.globalFilter?.get()` itself). This lets callers re-run
+ * filtering with a row model, column filters, or global filter of their own
+ * choosing outside of `table`'s normal row-model pipeline — for example to
+ * decide, from within a custom `filteredRowModel` feature, what the "real"
+ * (non-custom) filtered result would have been.
+ */
+export function createFilteredRowModelUnmemoized<
   TFeatures extends TableFeatures,
   TData extends RowData = any,
->(table: Table_Internal<TFeatures, TData>): RowModel<TFeatures, TData> {
-  const rowModel = table.getPreFilteredRowModel()
-  const columnFilters = table.atoms.columnFilters?.get()
-  const globalFilter = table.atoms.globalFilter?.get()
+>(
+  table: Table_Internal<TFeatures, TData>,
+  columnFilters: ColumnFiltersState | undefined,
+  globalFilter: unknown,
+  rowModel: RowModel<TFeatures, TData>,
+): RowModel<TFeatures, TData> {
   const hasGlobalFilter =
     globalFilter !== undefined && globalFilter !== null && globalFilter !== ''
 
@@ -102,23 +121,27 @@ function _createFilteredRowModel<
 
   const filterableIds = columnFilters?.map((d) => d.id) ?? []
 
-  const globalFilterFn = table_getGlobalFilterFn(table)
+  // A global filter value only exists when globalFilteringFeature is
+  // registered, so its global filter fn is resolved only when one is set
+  if (hasGlobalFilter) {
+    const globalFilterFn = getGlobalFilterFn(table)
 
-  const globallyFilterableColumns = table
-    .getAllLeafColumns()
-    .filter((column) => column_getCanGlobalFilter(column))
+    const globallyFilterableColumns = globalFilterFn
+      ? table.getAllLeafColumns().filter(getCanGlobalFilter)
+      : []
 
-  if (hasGlobalFilter && globalFilterFn && globallyFilterableColumns.length) {
-    filterableIds.push('__global__')
+    if (globalFilterFn && globallyFilterableColumns.length) {
+      filterableIds.push('__global__')
 
-    globallyFilterableColumns.forEach((column) => {
-      resolvedGlobalFilters.push({
-        id: column.id,
-        filterFn: globalFilterFn,
-        resolvedValue:
-          globalFilterFn.resolveFilterValue?.(globalFilter) ?? globalFilter,
+      globallyFilterableColumns.forEach((column) => {
+        resolvedGlobalFilters.push({
+          id: column.id,
+          filterFn: globalFilterFn,
+          resolvedValue:
+            globalFilterFn.resolveFilterValue?.(globalFilter) ?? globalFilter,
+        })
       })
-    })
+    }
   }
 
   // Flag the pre-filtered row model with each filter state

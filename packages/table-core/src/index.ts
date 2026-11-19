@@ -89,6 +89,7 @@ export * from './features/column-filtering/columnFilteringFeature'
 export * from './features/column-filtering/columnFilteringFeature.types'
 export * from './features/column-filtering/createFilteredRowModel'
 export * from './features/column-filtering/filterFns'
+export * from './features/column-filtering/filterRowsUtils'
 
 // columnGroupingFeature
 export * from './features/column-grouping/columnGroupingFeature'

@@ -1,3 +1,4 @@
+import { isProxy } from 'node:util/types'
 import { describe, expect, test, vi } from 'vitest'
 import {
   ChangeDetectionStrategy,
@@ -37,7 +38,7 @@ describe('injectTable', () => {
 
     @Component({
       selector: 'app-table',
-      template: ``,
+      template: `{{ table.getRowModel().rows.length }}`,
       standalone: true,
       changeDetection: ChangeDetectionStrategy.OnPush,
     })
@@ -70,6 +71,7 @@ describe('injectTable', () => {
       By.directive(TableComponent),
     ).componentInstance as TableComponent
 
+    expect(fixture.nativeElement.textContent.trim()).toBe('1')
     expect(
       tableComponent.table.getRowModel().rows.map((row) => row.original),
     ).toEqual([{ id: '1', title: 'First' }])
@@ -83,12 +85,29 @@ describe('injectTable', () => {
     TestBed.tick()
     await fixture.whenRenderingDone()
 
+    expect(fixture.nativeElement.textContent.trim()).toBe('2')
     expect(
       tableComponent.table.getRowModel().rows.map((row) => row.original),
     ).toEqual([
       { id: '1', title: 'Updated' },
       { id: '2', title: 'Second' },
     ])
+  })
+
+  test('should not initialize when destroyed before the first effect', () => {
+    @Component({ standalone: true, template: `` })
+    class TableComponent {
+      readonly data = input.required<Array<{ id: string }>>()
+      readonly table = injectTable(() => ({
+        data: this.data(),
+        features: stockFeatures,
+        columns: [],
+      }))
+    }
+
+    const fixture = TestBed.createComponent(TableComponent)
+
+    expect(() => fixture.destroy()).not.toThrow()
   })
 
   describe('Proxy table', () => {
@@ -98,22 +117,36 @@ describe('injectTable', () => {
       { id: 'id', header: 'Id', cell: (context) => context.getValue() },
       { id: 'title', header: 'Title', cell: (context) => context.getValue() },
     ]
-    const table = TestBed.runInInjectionContext(() =>
-      injectTable(() => ({
-        data: data(),
-        features: stockFeatures,
-        columns: columns,
-        getRowId: (row) => row.id,
-      })),
-    )
+    const createTable = () =>
+      TestBed.runInInjectionContext(() =>
+        injectTable(() => ({
+          data: data(),
+          features: stockFeatures,
+          columns: columns,
+          getRowId: (row) => row.id,
+        })),
+      )
+
+    test('exposes a table instance through the proxy', () => {
+      const table = createTable()
+
+      expect(isProxy(table)).toBe(true)
+      expect(table).toBeDefined()
+      expect(typeof table).toBe('object')
+      expect(typeof table.getRowModel).toBe('function')
+    })
 
     test('supports "in" operator', () => {
+      const table = createTable()
+
       expect('atoms' in table).toBe(true)
       expect('options' in table).toBe(true)
       expect('notFound' in table).toBe(false)
     })
 
     test('supports "Object.keys"', () => {
+      const table = createTable()
+
       const keys = Object.keys(table)
       expect(keys).toEqual(expect.arrayContaining(['options', 'getRowModel']))
     })
