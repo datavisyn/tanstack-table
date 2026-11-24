@@ -12,6 +12,8 @@ import type { Table_Internal } from '../../types/Table'
 import type { Cell } from '../../types/Cell'
 import type { Column_Internal } from '../../types/Column'
 import type {
+  ColumnDef_ColumnVisibility,
+  ColumnGroupMode,
   ColumnGroupModesState,
   ColumnVisibilityState,
 } from './columnVisibilityFeature.types'
@@ -95,7 +97,9 @@ export function column_getGroupMode<
   TFeatures extends TableFeatures,
   TData extends RowData,
   TValue extends CellData = CellData,
->(column: Column_Internal<TFeatures, TData, TValue>): string | undefined {
+>(
+  column: Column_Internal<TFeatures, TData, TValue>,
+): ColumnGroupMode | undefined {
   const groupModes = column.table.atoms.columnGroupModes?.get()
   return groupModes && hasOwn(groupModes, column.id)
     ? groupModes[column.id]
@@ -103,12 +107,13 @@ export function column_getGroupMode<
 }
 
 /**
- * Puts this group column in a mode, or back to showing all of its leaf columns
- * with `undefined`.
+ * Sets the view and collapsed state of this group column. `undefined`, or a
+ * mode with neither, removes the group's entry: it shows all of its leaf
+ * columns again.
  *
  * @example
  * ```ts
- * column_setGroupMode(groupColumn, 'collapsed')
+ * column_setGroupMode(groupColumn, { collapsed: true })
  * ```
  */
 export function column_setGroupMode<
@@ -117,11 +122,11 @@ export function column_setGroupMode<
   TValue extends CellData = CellData,
 >(
   column: Column_Internal<TFeatures, TData, TValue>,
-  mode: string | undefined,
+  mode: ColumnGroupMode | undefined,
 ): void {
   table_setColumnGroupModes(column.table, (old) => {
-    const next = Object.assign(makeObjectMap<string>(), old)
-    if (mode === undefined) {
+    const next = Object.assign(makeObjectMap<ColumnGroupMode>(), old)
+    if (mode?.view === undefined && !mode?.collapsed) {
       delete next[column.id]
     } else {
       next[column.id] = mode
@@ -130,12 +135,25 @@ export function column_setGroupMode<
   })
 }
 
+function getShownColumnIds(
+  groupModes: ColumnDef_ColumnVisibility['groupModes'],
+  mode: ColumnGroupMode | undefined,
+): Array<string> | undefined {
+  if (!groupModes || !mode) return undefined
+  // A collapsed group shows its collapsed columns whatever view it is in.
+  if (mode.collapsed && groupModes.collapsed) return groupModes.collapsed
+  const { views } = groupModes
+  return mode.view !== undefined && views && hasOwn(views, mode.view)
+    ? views[mode.view]
+    : undefined
+}
+
 /**
  * Checks whether the mode of a group this column sits in hides it.
  *
- * A leaf column is hidden when any ancestor group is in a mode whose
- * `columnDef.groupModes` entry does not list it. A group column counts as hidden
- * when all of its leaf columns are.
+ * A leaf column is hidden when any ancestor group is collapsed, or in a view,
+ * and the matching `columnDef.groupModes` entry does not list it. A group column
+ * counts as hidden when all of its leaf columns are.
  *
  * @example
  * ```ts
@@ -166,8 +184,10 @@ export function column_getIsHiddenByGroupMode<
     const mode = hasOwn(groupModes, ancestor.id)
       ? groupModes[ancestor.id]
       : undefined
-    const shownColumnIds =
-      mode !== undefined ? ancestor.columnDef.groupModes?.[mode] : undefined
+    const shownColumnIds = getShownColumnIds(
+      ancestor.columnDef.groupModes,
+      mode,
+    )
     if (shownColumnIds && !shownColumnIds.includes(column.id)) return true
     ancestor = ancestor.parent
   }
@@ -389,7 +409,10 @@ export function table_setColumnVisibility<
  *
  * @example
  * ```ts
- * table_setColumnGroupModes(table, (old) => ({ ...old, scores: 'collapsed' }))
+ * table_setColumnGroupModes(table, (old) => ({
+ *   ...old,
+ *   scores: { collapsed: true },
+ * }))
  * ```
  */
 export function table_setColumnGroupModes<

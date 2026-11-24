@@ -18,7 +18,7 @@ const columns: Array<ColumnDef<typeof features, Item>> = [
   {
     id: 'scores',
     columns: [leaf('a'), leaf('b'), leaf('total')],
-    groupModes: { collapsed: ['total'], combined: ['a', 'b'] },
+    groupModes: { collapsed: ['total'], views: { combined: ['a', 'b'] } },
   },
   leaf('x'),
 ]
@@ -53,9 +53,9 @@ describe('columnGroupModes', () => {
     expect(table.getColumn('a')!.getIsHiddenByGroupMode()).toBe(false)
   })
 
-  it('shows only the columns the active mode lists', () => {
+  it('shows only the columns a collapsed group lists', () => {
     const table = makeTable({
-      initialState: { columnGroupModes: { scores: 'collapsed' } },
+      initialState: { columnGroupModes: { scores: { collapsed: true } } },
     })
 
     expect(ids(table.getVisibleLeafColumns())).toEqual(['total', 'x'])
@@ -71,17 +71,19 @@ describe('columnGroupModes', () => {
   it('does not write to columnVisibility', () => {
     const table = makeTable()
 
-    table.getColumn('scores')!.setGroupMode('collapsed')
+    table.getColumn('scores')!.setGroupMode({ collapsed: true })
 
     expect(table.atoms.columnVisibility.get()).toEqual({})
-    expect(table.atoms.columnGroupModes.get()).toEqual({ scores: 'collapsed' })
+    expect(table.atoms.columnGroupModes.get()).toEqual({
+      scores: { collapsed: true },
+    })
   })
 
   it('combines with columnVisibility: a column is shown only if both allow it', () => {
     const table = makeTable({
       initialState: {
         columnVisibility: { b: false },
-        columnGroupModes: { scores: 'combined' },
+        columnGroupModes: { scores: { view: 'combined' } },
       },
     })
 
@@ -97,25 +99,49 @@ describe('columnGroupModes', () => {
     const table = makeTable()
     const scores = table.getColumn('scores')!
 
-    scores.setGroupMode('collapsed')
-    expect(scores.getGroupMode()).toBe('collapsed')
+    scores.setGroupMode({ collapsed: true })
+    expect(scores.getGroupMode()).toEqual({ collapsed: true })
     expect(ids(table.getVisibleLeafColumns())).toEqual(['total', 'x'])
 
-    scores.setGroupMode('combined')
+    scores.setGroupMode({ view: 'combined' })
     expect(ids(table.getVisibleLeafColumns())).toEqual(['a', 'b', 'x'])
 
     scores.setGroupMode(undefined)
     expect(table.atoms.columnGroupModes.get()).toEqual({})
     expect(ids(table.getVisibleLeafColumns())).toEqual(['a', 'b', 'total', 'x'])
 
-    table.setColumnGroupModes({ scores: 'collapsed' })
+    table.setColumnGroupModes({ scores: { collapsed: true } })
     expect(ids(table.getVisibleLeafColumns())).toEqual(['total', 'x'])
   })
 
-  it('ignores a mode the group does not define, and entries for unknown columns', () => {
+  it('keeps the view while collapsed, so expanding returns to it', () => {
+    const table = makeTable()
+    const scores = table.getColumn('scores')!
+
+    scores.setGroupMode({ view: 'combined' })
+    scores.setGroupMode({ ...scores.getGroupMode(), collapsed: true })
+    // Collapsed wins over the view.
+    expect(ids(table.getVisibleLeafColumns())).toEqual(['total', 'x'])
+
+    scores.setGroupMode({ ...scores.getGroupMode(), collapsed: false })
+    expect(scores.getGroupMode()).toEqual({
+      view: 'combined',
+      collapsed: false,
+    })
+    expect(ids(table.getVisibleLeafColumns())).toEqual(['a', 'b', 'x'])
+
+    // A mode with neither a view nor collapsed leaves no entry behind.
+    scores.setGroupMode({ collapsed: false })
+    expect(table.atoms.columnGroupModes.get()).toEqual({})
+  })
+
+  it('ignores a view the group does not define, and entries for unknown columns', () => {
     const table = makeTable({
       initialState: {
-        columnGroupModes: { scores: 'unknown', missing: 'collapsed' },
+        columnGroupModes: {
+          scores: { view: 'unknown' },
+          missing: { collapsed: true },
+        },
       },
     })
 
@@ -125,12 +151,14 @@ describe('columnGroupModes', () => {
 
   it('resets to the initial state, or to empty', () => {
     const table = makeTable({
-      initialState: { columnGroupModes: { scores: 'collapsed' } },
+      initialState: { columnGroupModes: { scores: { collapsed: true } } },
     })
 
     table.setColumnGroupModes({})
     table.resetColumnGroupModes()
-    expect(table.atoms.columnGroupModes.get()).toEqual({ scores: 'collapsed' })
+    expect(table.atoms.columnGroupModes.get()).toEqual({
+      scores: { collapsed: true },
+    })
 
     table.resetColumnGroupModes(true)
     expect(table.atoms.columnGroupModes.get()).toEqual({})
@@ -140,12 +168,12 @@ describe('columnGroupModes', () => {
     const onColumnGroupModesChange = vi.fn()
     const table = makeTable({ onColumnGroupModesChange })
 
-    table.getColumn('scores')!.setGroupMode('collapsed')
+    table.getColumn('scores')!.setGroupMode({ collapsed: true })
 
     expect(onColumnGroupModesChange).toHaveBeenCalledTimes(1)
     const updater = onColumnGroupModesChange.mock.calls[0]![0]
     expect(typeof updater === 'function' ? updater({}) : updater).toEqual({
-      scores: 'collapsed',
+      scores: { collapsed: true },
     })
   })
 
@@ -193,7 +221,7 @@ describe('columnGroupModes', () => {
         startCells: ['total'],
       })
 
-      table.getColumn('scores')!.setGroupMode('collapsed')
+      table.getColumn('scores')!.setGroupMode({ collapsed: true })
 
       expect(read(table)).toEqual({
         visibleLeaf: ['total', 'x'],
@@ -211,7 +239,7 @@ describe('columnGroupModes', () => {
         startCells: ['total'],
       })
 
-      table.getColumn('scores')!.setGroupMode('combined')
+      table.getColumn('scores')!.setGroupMode({ view: 'combined' })
 
       expect(read(table)).toMatchObject({
         visibleLeaf: ['a', 'b', 'x'],
