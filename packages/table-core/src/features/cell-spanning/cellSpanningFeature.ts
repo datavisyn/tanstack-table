@@ -63,6 +63,7 @@ export const cellSpanningFeature: TableFeature = {
           // when that feature is absent. columnPinning is included because
           // cells render in pinned order and column spans clamp to regions.
           table.atoms.columnVisibility?.get(),
+          table.atoms.columnGroupModes?.get(),
           table.atoms.columnOrder?.get(),
           table.atoms.columnPinning?.get(),
           table.atoms.grouping?.get(),

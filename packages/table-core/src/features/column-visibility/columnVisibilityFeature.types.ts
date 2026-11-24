@@ -5,8 +5,37 @@ import type { Column } from '../../types/Column'
 
 export type ColumnVisibilityState = Record<string, boolean>
 
+/**
+ * How a group column is currently shown. `collapsed` wins over `view`.
+ */
+export interface ColumnGroupMode {
+  /**
+   * The view the group is in, one of its `columnDef.groupModes.views`. Without
+   * one the group shows all of its leaf columns.
+   */
+  view?: string
+  /**
+   * Whether the group is collapsed to its `columnDef.groupModes.collapsed`
+   * columns. Kept apart from `view`, so expanding returns to the view the group
+   * was collapsed from.
+   */
+  collapsed?: boolean
+}
+
+/**
+ * The mode each group column is in, keyed by group column id. A group without
+ * an entry shows all of its leaf columns.
+ */
+export type ColumnGroupModesState = Record<string, ColumnGroupMode>
+
 export interface TableState_ColumnVisibility {
   columnVisibility: ColumnVisibilityState
+  /**
+   * The mode each group column is in. Which leaf columns a mode shows is set by
+   * the group's `columnDef.groupModes`. Kept apart from `columnVisibility`, so
+   * changing a group's mode never touches the visibility users have chosen.
+   */
+  columnGroupModes: ColumnGroupModesState
 }
 
 export interface TableOptions_ColumnVisibility {
@@ -20,11 +49,17 @@ export interface TableOptions_ColumnVisibility {
    * the slice without this callback.
    */
   onColumnVisibilityChange?: OnChangeFn<ColumnVisibilityState>
+  /**
+   * Called with an updater when the group modes change. Pair this with
+   * `state.columnGroupModes` when using external state; external atoms can own
+   * the slice without this callback.
+   */
+  onColumnGroupModesChange?: OnChangeFn<ColumnGroupModesState>
 }
 
 export type VisibilityDefaultOptions = Pick<
   TableOptions_ColumnVisibility,
-  'onColumnVisibilityChange'
+  'onColumnVisibilityChange' | 'onColumnGroupModesChange'
 >
 
 export interface Table_ColumnVisibility<
@@ -59,9 +94,19 @@ export interface Table_ColumnVisibility<
    */
   resetColumnVisibility: (defaultState?: boolean) => void
   /**
+   * Resets `columnGroupModes` to `initialState.columnGroupModes`.
+   *
+   * Pass `true` to ignore initial state and reset to `{}`.
+   */
+  resetColumnGroupModes: (defaultState?: boolean) => void
+  /**
    * Updates column visibility state with a next map or updater function.
    */
   setColumnVisibility: (updater: Updater<ColumnVisibilityState>) => void
+  /**
+   * Updates the group modes with a next map or updater function.
+   */
+  setColumnGroupModes: (updater: Updater<ColumnGroupModesState>) => void
   /**
    * Toggles the visibility of all columns.
    */
@@ -73,6 +118,29 @@ export interface ColumnDef_ColumnVisibility {
    * Allows this column to be hidden. Defaults to `true`.
    */
   enableHiding?: boolean
+  /**
+   * For group columns: the ids of the leaf columns the group shows while it is
+   * collapsed, and while it is in each of its views. Its other leaf columns are
+   * hidden, on top of `columnVisibility`. A collapsed group without `collapsed`
+   * columns, and a group in a view that is not listed here or in no view, shows
+   * all of its leaf columns.
+   *
+   * @example
+   * ```ts
+   * columnHelper.group({
+   *   id: 'scores',
+   *   columns: [math, physics, total],
+   *   groupModes: {
+   *     collapsed: ['total'],
+   *     views: { subjects: ['math', 'physics'] },
+   *   },
+   * })
+   * ```
+   */
+  groupModes?: {
+    collapsed?: Array<string>
+    views?: Record<string, Array<string>>
+  }
 }
 
 export interface Row_ColumnVisibility<
@@ -98,9 +166,25 @@ export interface Column_ColumnVisibility {
    */
   getCanHide: () => boolean
   /**
-   * Checks whether this column is currently visible.
+   * Gets the mode this group column is in, if any.
+   */
+  getGroupMode: () => ColumnGroupMode | undefined
+  /**
+   * Checks whether the mode of a group this column sits in hides it, whatever
+   * `columnVisibility` says. A group column counts as hidden when all of its
+   * leaf columns are.
+   */
+  getIsHiddenByGroupMode: () => boolean
+  /**
+   * Checks whether this column is currently visible: shown by
+   * `columnVisibility` and not hidden by the mode of a group it sits in.
    */
   getIsVisible: () => boolean
+  /**
+   * Sets the view and collapsed state of this group column, or puts it back to
+   * showing all of its leaf columns with `undefined`.
+   */
+  setGroupMode: (mode: ColumnGroupMode | undefined) => void
   /**
    * Creates a checkbox-style handler that toggles this column's visibility.
    */

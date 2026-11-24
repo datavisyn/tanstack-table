@@ -55,6 +55,7 @@ export const columnOrderingFeature: TableFeature = {
           table.atoms.columnOrder?.get(),
           table.atoms.columnPinning?.get(),
           table.atoms.columnVisibility?.get(),
+          table.atoms.columnGroupModes?.get(),
           table.atoms.grouping?.get(),
           table.options.groupedColumnMode,
         ],
